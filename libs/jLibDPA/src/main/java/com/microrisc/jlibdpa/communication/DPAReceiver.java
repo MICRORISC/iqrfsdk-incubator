@@ -15,8 +15,8 @@
  */
 package com.microrisc.jlibdpa.communication;
 
-import com.microrisc.jlibdpa.dpaTypes.DPAConfirmation;
-import com.microrisc.jlibdpa.dpaTypes.DPAResponse;
+import com.microrisc.jlibdpa.types.DPAConfirmation;
+import com.microrisc.jlibdpa.types.DPAResponse;
 
 /**
  * Provides listening interface for receiving messages from IQRF network in DPA

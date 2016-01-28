@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa;
+
+import com.microrisc.jlibdpa.communication.DPAReceiver;
+import com.microrisc.jlibdpa.types.DPARequest;
+import com.microrisc.jlibdpa.types.DPAResponse;
+import java.util.UUID;
 
 /**
- * Encapsulating information about request, which will be sent into IQRF
- * network.
- *
+ *  Public interface for using JLibDPA library.
+ * 
  * @author Martin Strouhal
  */
-public interface DPARequest extends DPAData {
-
-    public int getAdress();
-
-    public int getPeripheral();
-
-    public int getCommand();
-
-    public int getHWPID();
-
-    public short[] getAdditionalData();
-
+public interface JLibDPA {
+    
+    public DPAResponse sendDPARequest(DPARequest request);
+    
+    public UUID sendAsyncDPARequest(DPARequest request);
+    
+    public DPAResponse getAsyncResult(UUID uid);
+    
+    public void addReceivingListener(DPAReceiver receiver);
+    
+    public void removeReceivingListener(DPAReceiver receiver);
+    
+    public void destroy();
+    
 }

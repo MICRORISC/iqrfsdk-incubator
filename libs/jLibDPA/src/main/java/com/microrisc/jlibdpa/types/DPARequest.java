@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.communication;
-
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
-import java.util.UUID;
+package com.microrisc.jlibdpa.types;
 
 /**
+ * Encapsulating information about request, which will be sent into IQRF
+ * network.
  *
  * @author Martin Strouhal
  */
-public interface CallableRequest {
-    
-    short[] getData();
-    
-    UUID getUUID();
+public interface DPARequest extends DPAData {
 
-    DPARequest getSourceRequest();
-    
+    public int getAdress();
+
+    public int getPeripheral();
+
+    public int getCommand();
+
+    public int getHWPID();
+
+    public short[] getAdditionalData();
+
 }

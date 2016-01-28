@@ -15,7 +15,7 @@
  */
 package com.microrisc.jlibdpa;
 
-import com.microrisc.jlibdpa.dpaTypes.DPAResponse;
+import com.microrisc.jlibdpa.types.DPAResponse;
 import java.util.UUID;
 
 /**

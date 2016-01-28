@@ -13,30 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa;
+package com.microrisc.jlibdpa.communication;
 
-import com.microrisc.jlibdpa.communication.DPAReceiver;
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
-import com.microrisc.jlibdpa.dpaTypes.DPAResponse;
+import com.microrisc.jlibdpa.types.DPARequest;
 import java.util.UUID;
 
 /**
- *  Public interface for using JLibDPA library.
- * 
+ *
  * @author Martin Strouhal
  */
-public interface JLibDPA {
+public class SimpleCallableRequest implements CallableRequest {
     
-    public DPAResponse sendDPARequest(DPARequest request);
+    private final DPARequest sourceRequest;
+    private final UUID uid;
+
+    public SimpleCallableRequest(DPARequest request) {
+        //TODO check parameters
+        this.sourceRequest = request;
+        this.uid = UUID.randomUUID();
+    }
     
-    public UUID sendAsyncDPARequest(DPARequest request);
-    
-    public DPAResponse getAsyncResult(UUID uid);
-    
-    public void addReceivingListener(DPAReceiver receiver);
-    
-    public void removeReceivingListener(DPAReceiver receiver);
-    
-    public void destroy();
+    @Override
+    public short[] getData() {
+        return sourceRequest.getAllData();
+    }
+
+    @Override
+    public UUID getUUID() {
+        return uid;
+    }
+
+    @Override
+    public DPARequest getSourceRequest() {
+        return sourceRequest;
+    }
     
 }

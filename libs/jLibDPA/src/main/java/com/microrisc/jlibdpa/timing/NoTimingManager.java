@@ -17,7 +17,7 @@ package com.microrisc.jlibdpa.timing;
 
 import com.microrisc.jlibdpa.communication.DPAReceiver;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
-import com.microrisc.jlibdpa.dpaTypes.DPAConfirmation;
+import com.microrisc.jlibdpa.types.DPAConfirmation;
 
 /**
  *

@@ -16,13 +16,14 @@
 package com.microrisc.jlibdpa.communication;
 
 import com.microrisc.jlibdpa.DPAProperties;
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
+import com.microrisc.jlibdpa.DPAResponseCode;
+import com.microrisc.jlibdpa.types.DPARequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  Providing services for identification of received data.
- * 
+ * Providing services for identification of received data.
+ *
  * @author Martin Strouhal
  */
 public final class DPAIdentifier {
@@ -47,11 +48,11 @@ public final class DPAIdentifier {
             }
 
             // checking confirmation
-            if (false) {
+            if (receivedData[DPAProperties.RESPONSE_CODE_START] == DPAResponseCode.CONFIRMATION.getCodeValue()) {
                 typeToReturn = DPAReplyMessagesTypes.CONFIRMATION;
             }
-            //TODO identification of confirmation and async msg
-
+            //TODO identification of async msg
+           
             if (false) {
                 typeToReturn = DPAReplyMessagesTypes.ASYNC;
             }

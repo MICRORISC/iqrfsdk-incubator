@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa.types;
 
 import com.microrisc.jlibdpa.DPAProperties;
 import org.slf4j.Logger;

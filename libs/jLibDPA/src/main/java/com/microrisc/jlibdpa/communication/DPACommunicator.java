@@ -15,9 +15,10 @@
  */
 package com.microrisc.jlibdpa.communication;
 
+
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
 import com.microrisc.jlibdpa.timing.TimeManager;
+import com.microrisc.jlibdpa.types.DPARequest;
 import com.microrisc.jlibiqrf.IQRFListener;
 import com.microrisc.jlibiqrf.JLibIQRF;
 import java.util.LinkedList;

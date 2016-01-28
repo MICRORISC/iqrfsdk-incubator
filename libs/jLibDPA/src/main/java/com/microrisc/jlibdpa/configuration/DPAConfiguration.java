@@ -30,7 +30,7 @@ public class DPAConfiguration {
     /** When isn't computed timing from confirmation, this timeout is used. Time
      * is in [s] */
     private final int unknownTimeout;
-    private final Class<? extends TimeManager> timeManagerClass;
+    private Class<? extends TimeManager> timeManagerClass;
     
     private IQRFConfiguration iqrfConfig;
 

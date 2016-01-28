@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa.communication;
+
+import com.microrisc.jlibdpa.types.DPARequest;
+import java.util.UUID;
 
 /**
  *
  * @author Martin Strouhal
  */
-public interface DPAData {
+public interface CallableRequest {
     
-    public short[] getAllData();    
+    short[] getData();
+    
+    UUID getUUID();
+
+    DPARequest getSourceRequest();
+    
 }
