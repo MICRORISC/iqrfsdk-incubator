@@ -1,19 +1,30 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright 2016 MICRORISC s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.microrisc.opengateway;
 
-import com.microrisc.opengateway.iqrf.dpa.DPAController;
-import com.microrisc.opengateway.mqtt.MQTTController;
+import com.microrisc.opengateway.iqrf.dpa.Controller;
+import com.microrisc.opengateway.mqtt.Communicator;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author spinarr
+ * @author Rostislav Spinar
  */
 public class OpenGatewayRunner{
 
@@ -64,13 +75,13 @@ public class OpenGatewayRunner{
         private void runOpenGatewayLogic() throws MqttException {
 
             // IQRF DPA
-            DPAController dpaController = new DPAController(NODES_COUNT);
+            Controller dpaController = new Controller(NODES_COUNT);
             dpaController.initDPASimplyAndGetNodes();
             dpaController.runTasks();
 
             // IQRF MQTT
             String url = protocol + broker + ":" + port;
-            MQTTController mqttController = new MQTTController(url, clientId, cleanSession, quietMode, userName, password);
+            Communicator mqttController = new Communicator(url, clientId, cleanSession, quietMode, userName, password);
             mqttController.subscribe(subTopic, 2);
         }
 

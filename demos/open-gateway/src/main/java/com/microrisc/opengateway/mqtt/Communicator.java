@@ -1,12 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright 2016 MICRORISC s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.microrisc.opengateway.mqtt;
 
-import com.microrisc.opengateway.OpenGatewayTest;
-import java.sql.Timestamp;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -14,13 +23,14 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
-import org.json.JSONObject;
+import com.microrisc.opengateway.OpenGatewayTest;
+import java.sql.Timestamp;
 
 /**
  *
- * @author spinarr
+ * @author Rostislav Spinar
  */
-public class MQTTController implements MqttCallback {
+public class Communicator implements MqttCallback {
 
     // Private instance variables
     private MqttClient client;
@@ -43,7 +53,7 @@ public class MQTTController implements MqttCallback {
      * @param password the password for the user
      * @throws MqttException
      */
-    public MQTTController(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName, String password) throws MqttException {
+    public Communicator(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName, String password) throws MqttException {
         
         this.brokerUrl = brokerUrl;
         this.quietMode = quietMode;
@@ -76,6 +86,11 @@ public class MQTTController implements MqttCallback {
 
             // Set this wrapper as the callback handler
             client.setCallback(this);
+            
+            // Connect to the MQTT server
+            log("Connecting to " + brokerUrl + " with client ID " + client.getClientId());
+            client.connect(conOpt);
+            log("Connected");
 
         } catch (MqttException e) {
             e.printStackTrace();
@@ -95,9 +110,9 @@ public class MQTTController implements MqttCallback {
     public void publish(String topicName, int qos, byte[] payload) throws MqttException {
 
         // Connect to the MQTT server
-        log("Connecting to " + brokerUrl + " with client ID " + client.getClientId());
-        client.connect(conOpt);
-        log("Connected");
+        //log("Connecting to " + brokerUrl + " with client ID " + client.getClientId());
+        //client.connect(conOpt);
+        //log("Connected");
 
         String time = new Timestamp(System.currentTimeMillis()).toString();
         log("Publishing at: " + time + " to topic \"" + topicName + "\" qos " + qos);
@@ -112,8 +127,8 @@ public class MQTTController implements MqttCallback {
         client.publish(topicName, message);
 
         // Disconnect the client
-        client.disconnect();
-        log("Disconnected");
+        //client.disconnect();
+        //log("Disconnected");
     }
 
     /**
@@ -129,8 +144,8 @@ public class MQTTController implements MqttCallback {
     public void subscribe(String topicName, int qos) throws MqttException {
         
         // Connect to the MQTT server
-        client.connect(conOpt);
-        log("Connected to " + brokerUrl + " with client ID " + client.getClientId());
+        //client.connect(conOpt);
+        //log("Connected to " + brokerUrl + " with client ID " + client.getClientId());
 
     	// Subscribe to the requested topic
         // The QoS specified is the maximum level that messages will be sent to the client at.
@@ -141,8 +156,8 @@ public class MQTTController implements MqttCallback {
         client.subscribe(topicName, qos);
 
         // Disconnect the client from the server
-        client.disconnect();
-        log("Disconnected");
+        //client.disconnect();
+        //log("Disconnected");
     }
 
     /**
@@ -166,7 +181,19 @@ public class MQTTController implements MqttCallback {
         // An application may choose to implement reconnection
         // logic at this point. This sample simply exits.
         log("Connection to " + brokerUrl + " lost!" + cause);
-        System.exit(1);
+
+        // Connect to the MQTT server
+        log("Reconnecting to " + brokerUrl + " with client ID " + client.getClientId());
+        
+        conOpt = new MqttConnectOptions();
+        conOpt.setCleanSession(false);
+        
+        try {
+            client.connect(conOpt);
+        } catch (MqttException ex) {
+            log("Reconnecting to " + brokerUrl + " with client ID " + client.getClientId() + "failed!" + ex.getMessage());
+        }
+        log("Connected");
     }
 
     /**
@@ -206,11 +233,10 @@ public class MQTTController implements MqttCallback {
                            + "  Message:\t" + new String(message.getPayload())
                            + "  QoS:\t" + message.getQos());
         
-        String msg = new String(message.getPayload());
-        JSONObject JSONRequest = new JSONObject(msg);
+        // get data as string
+        final String msg = new String(message.getPayload());
         
-        boolean result = OpenGatewayTest.sendDPARequest(JSONRequest);
-        //TODO: confirm based on result
-        
+        boolean result = OpenGatewayTest.sendDPARequest(topic, msg);
+        // TODO: confirm based on result
     }
 }

@@ -1,8 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright 2016 MICRORISC s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.microrisc.opengateway.iqrf.dpa;
 
 import com.microrisc.simply.Network;
@@ -24,12 +35,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author spinarr
+ * @author Rostislav Spinar
  */
-public class DPAController implements AsynchronousMessagesListener<DPA_AsynchronousMessage> {
+public class Controller implements AsynchronousMessagesListener<DPA_AsynchronousMessage> {
 
     /** Logger. */
-    private static final Logger logger = LoggerFactory.getLogger(DPAController.class);
+    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
     
     // reference to DPA Simply
     private DPA_Simply simply = null;
@@ -42,7 +53,7 @@ public class DPAController implements AsynchronousMessagesListener<DPA_Asynchron
 
     private final int countOfUsedNodes;
 
-    public DPAController(int countOfUsedNodes) {
+    public Controller(int countOfUsedNodes) {
         this.countOfUsedNodes = countOfUsedNodes;
     }
 
@@ -87,13 +98,13 @@ public class DPAController implements AsynchronousMessagesListener<DPA_Asynchron
     public void runTasks() {
 
         // dpa periodic task - sending requests based on fixed period
-        TimerTask periodicTask = new DPAPeriodicTask();
+        TimerTask periodicTask = new PeriodicTask();
         Timer timerPeriodic = new Timer(true);
         timerPeriodic.scheduleAtFixedRate(periodicTask, 0, 1000);
         System.out.println("Periodic DPAPeriodicTask started");
 
         // dpa receiver task - checking for responses
-        TimerTask receiverTask = new DPAReceiverTask();
+        TimerTask receiverTask = new ReceiverTask();
         Timer timerReceiver = new Timer(true);
         timerReceiver.scheduleAtFixedRate(receiverTask, 0, 1000);
         System.out.println("Periodic DPAReceiverTask started");
@@ -113,15 +124,10 @@ public class DPAController implements AsynchronousMessagesListener<DPA_Asynchron
 
         System.out.println("Main data: " + message.getMainData());
         System.out.println();
-
-        // getting specific type once we know what message comes
-        //OsInfo osi = (OsInfo)message.getMainData();
-        //System.out.println("Pretty format: " + osi.toPrettyFormatedString());
-        //System.out.println();
         
         // TODO
         // create DPA request
-        // DPAController.send(DPARequest)
+        // Controller.send(DPARequest)
         // store Request UUID
         
         // TODO
