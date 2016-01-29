@@ -13,16 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.types;
+package com.microrisc.jlibdpa.communication.receiving;
 
-import java.util.UUID;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  *
  * @author Martin Strouhal
  */
-public interface DPAResponse {
+public class ListenersManager {
 
-    UUID getUUID();
+    private final Set<DPAReceiver> listeners;
+
+    public ListenersManager(){
+        listeners = new LinkedHashSet<>();
+    }
     
+    //TODO checking
+    public void registerNewListener(DPAReceiver receiver) {
+        listeners.add(receiver);
+    }
+
+    public void unregisterListener(DPAReceiver receiver) {
+        listeners.remove(receiver);
+    }
+
+    public void unregisterAllListeners() {
+        listeners.clear();
+    }
 }

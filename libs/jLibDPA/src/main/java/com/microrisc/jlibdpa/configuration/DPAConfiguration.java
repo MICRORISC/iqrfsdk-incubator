@@ -57,4 +57,9 @@ public class DPAConfiguration {
     public Class<? extends TimeManager> getTimeManagerClass() {
         return timeManagerClass;
     }
+
+    public int getCountOfResults() {
+        //TODO count of results
+        return 100;
+    }
 }

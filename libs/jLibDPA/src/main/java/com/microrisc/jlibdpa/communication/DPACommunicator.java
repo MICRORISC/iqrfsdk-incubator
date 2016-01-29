@@ -16,6 +16,8 @@
 package com.microrisc.jlibdpa.communication;
 
 
+import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.ListenersManager;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 import com.microrisc.jlibdpa.timing.TimeManager;
 import com.microrisc.jlibdpa.types.DPARequest;
@@ -51,8 +53,10 @@ public final class DPACommunicator implements IQRFListener {
         sendingThread = new SendingThread();
     }
 
-    public void initSender(DPAConfiguration config) {
-        logger.debug("initSender - start: config={}", config);
+    public void initSender(DPAConfiguration config, ListenersManager listenersManager) {
+        logger.debug("initSender - start: config={}, listenersManager={}",
+                config, listenersManager);
+
         try {
             timeManager = config.getTimeManagerClass().newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
@@ -60,12 +64,17 @@ public final class DPACommunicator implements IQRFListener {
             //TODO throw exception
         }
         timeManager.init(config);
+        if (timeManager instanceof DPAReceiver) {
+            listenersManager.registerNewListener((DPAReceiver)timeManager);
+        }
+
         iqrf = JLibIQRF.init(config.getIQRFConfiguration());
         if (iqrf == null) {
             String txt = "IQRF layer cannot be created with specified parameters.";
             logger.error(txt);
             throw new IllegalArgumentException(txt);
         }
+
         //TODO maybe init result collector and etc.
         sendingThread.start();
         logger.debug("initSender - end");

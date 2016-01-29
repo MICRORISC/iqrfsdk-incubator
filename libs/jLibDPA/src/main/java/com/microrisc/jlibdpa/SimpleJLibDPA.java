@@ -16,12 +16,11 @@
 package com.microrisc.jlibdpa;
 
 import com.microrisc.jlibdpa.communication.DPACommunicator;
-import com.microrisc.jlibdpa.communication.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.ListenersManager;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 import com.microrisc.jlibdpa.types.DPARequest;
 import com.microrisc.jlibdpa.types.DPAResponse;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -31,27 +30,28 @@ import java.util.UUID;
  */
 public class SimpleJLibDPA implements JLibDPA {
 
-    private DPACommunicator sender;
-    private ResultCollector resultCollector;
-    private Set<DPAReceiver> listeners;
+    private final DPACommunicator communicator;
+    private final ResultCollector resultCollector;
+    private final ListenersManager listenersManager;
 
     public SimpleJLibDPA(DPAConfiguration config) {
-        resultCollector = new ResultCollector();
-        listeners = new LinkedHashSet<>();
-        sender = new DPACommunicator();
-        sender.initSender(config);
+        resultCollector = new ResultCollector(config);
+        listenersManager = new ListenersManager();
+        listenersManager.registerNewListener(resultCollector);
+        communicator = new DPACommunicator();
+        communicator.initSender(config, listenersManager);
     }
 
 
     @Override
     public DPAResponse sendDPARequest(DPARequest request) {
-        sender.invokeRequest(request);
+        communicator.invokeRequest(request);
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public UUID sendAsyncDPARequest(DPARequest request) {
-        return sender.invokeRequest(request);
+        return communicator.invokeRequest(request);
     }
 
     @Override
@@ -61,18 +61,18 @@ public class SimpleJLibDPA implements JLibDPA {
 
     @Override
     public void addReceivingListener(DPAReceiver receiver) {
-        listeners.add(receiver);
+        listenersManager.registerNewListener(receiver);
     }
 
     @Override
     public void removeReceivingListener(DPAReceiver receiver) {
-        listeners.remove(receiver);
+        listenersManager.unregisterListener(receiver);
     }
 
     @Override
     public void destroy() {
-        listeners.clear();
-        sender = null;
-        resultCollector = null;
+        listenersManager.unregisterAllListeners();
+        resultCollector.destroy();
+        //TODO destroy communicator
     }
 }

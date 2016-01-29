@@ -15,7 +15,7 @@
  */
 package com.microrisc.jlibdpa.timing;
 
-import com.microrisc.jlibdpa.communication.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 import com.microrisc.jlibdpa.types.DPAConfirmation;
 
@@ -23,7 +23,7 @@ import com.microrisc.jlibdpa.types.DPAConfirmation;
  *
  * @author Martin Strouhal
  */
-public class NoTimingManager implements TimeManager, DPAReceiver {
+public class NoTimingManager extends DPAReceiver implements TimeManager {
 
     public void init(DPAConfiguration config) {
         //TODO init
