@@ -24,9 +24,9 @@ public class Topics {
     
     private static final String CLIENT_ID = "b827eb26c73d";
     
-    public static final String ACTUATOR_LEDG = CLIENT_ID + "/actuators/ledg";
+    public static final String ACTUATORS_LEDS = CLIENT_ID + "/actuators/leds";
     
-    public static final String ACTUATOR_LEDR = CLIENT_ID + "/actuators/ledr";
+    public static final String SENSORS_THERMOMETERS = CLIENT_ID + "/sensors/thermometers";
     
-    public static final String SENSOR_THERMOMETER = CLIENT_ID + "/sensors/thermometer";
+    public static final String ASYNCHRONOUS_RESPONSES = CLIENT_ID + "/asynchronous/responses";
 }

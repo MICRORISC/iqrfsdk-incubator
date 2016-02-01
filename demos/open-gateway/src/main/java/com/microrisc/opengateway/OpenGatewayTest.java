@@ -33,11 +33,12 @@ import com.microrisc.simply.iqrf.dpa.DPA_Simply;
 import com.microrisc.simply.iqrf.dpa.v22x.DPA_SimplyFactory;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessage;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessageProperties;
+import com.microrisc.simply.iqrf.dpa.protocol.DPA_ProtocolProperties;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.GeneralLED;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.LEDG;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.LEDR;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.OS;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.Thermometer;
+import com.microrisc.simply.iqrf.dpa.v22x.types.DPA_AdditionalInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.Thermometer_values;
 import com.microrisc.simply.iqrf.types.VoidType;
@@ -57,7 +58,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     public static DPA_Simply simply = null;
     public static Network network1 = null;
     public static Node node1 = null;
-    public static Node node2 = null;
+    public static OsInfo osInfo = null;
+    public static boolean asyncRequestReceived = false;
     
     // references for MQTT
     public static String protocol = "tcp://";
@@ -65,9 +67,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     public static int port = 1883;
     
     public static String clientId = "b827eb26c73d";
-    public static String subTopic = "in";    
-    public static String pubTopic = "out";
-    
     public static boolean cleanSession = true;
     public static boolean quietMode = false;
     public static boolean ssl = false;
@@ -76,7 +75,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     public static String userName = null;
     
     public static Communicator mqttCommunicator = null;
-
+    public static String webResponseToBeSent = null;
+    public static boolean webRequestReceived = false;
+    
+    public static int pid = 0;
+    public static int pidAsync = 0;
+    
     // prints out specified message, destroys the Simply and exits
     private static void printMessageAndExit(String message, boolean exit) {
         System.out.println(message);
@@ -103,9 +107,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         
         String url = protocol + broker + ":" + port;
         mqttCommunicator = new Communicator(url, clientId, cleanSession, quietMode, userName, password);
-        mqttCommunicator.subscribe(Topics.ACTUATOR_LEDG, 2);
-        mqttCommunicator.subscribe(Topics.ACTUATOR_LEDR, 2);
-        mqttCommunicator.subscribe(subTopic, 2);
+        mqttCommunicator.subscribe(Topics.ACTUATORS_LEDS, 2);
         
         // ASYNC REQUESTS FROM DPA
         
@@ -132,12 +134,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             printMessageAndExit("Node 1 doesn't exist", true);
         }
         
-        // getting node 2
-        node2 = network1.getNode("2");
-        if ( node2 == null ) {
-            printMessageAndExit("Node 2 doesn't exist", true);
-        }
-        
         // getting Thermometer interface
         Thermometer thermo = node1.getDeviceObject(Thermometer.class);
         if ( thermo == null ) {
@@ -151,7 +147,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         }
          
         // get info about module
-        OsInfo osInfo = os.read();
+        osInfo = os.read();
         if (osInfo == null) {
             CallRequestProcessingState procState = os.getCallRequestProcessingStateOfLastCall();
             if ( procState == ERROR ) {
@@ -174,13 +170,40 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             // maximal number of attempts of getting a result
             final int RETRIES = 3;
             int attempt = 0;
+            int checkResponse = 0;
             
             while (attempt++ < RETRIES) {
                 
-                // wait for response
-                Thread.sleep(30000);
+                // main job is here for now - quick hack to test
+                while (true) { 
+                    
+                    Thread.sleep(10);
+                    checkResponse++;
+
+                    // dpa async task
+                    if(asyncRequestReceived) {
+                        asyncRequestReceived = false;
+                        sendDPAAsyncRequest();
+                    }
+                    
+                    // mqtt web confirmation task
+                    if(webRequestReceived) {
+                        webRequestReceived = false;
+                        try {
+                            mqttCommunicator.publish(Topics.ACTUATORS_LEDS, 2, webResponseToBeSent.getBytes());
+                        } catch (MqttException ex) {
+                            System.err.println("Error while publishing sync dpa message.");
+                        }
+                    }
+                    
+                    // periodic task ever 30s
+                    if(checkResponse == 3000) {
+                        checkResponse = 0;
+                        break;
+                    }
+                }
                 
-                // get request call state
+                 // get request call state
                 CallRequestProcessingState procState = thermo.getCallRequestProcessingState(tempRequestUid);
 
                 // have result already
@@ -195,12 +218,11 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     // general call error
                     CallRequestProcessingError error = thermo.getCallRequestProcessingErrorOfLastCall();
                     printMessageAndExit("Getting temperature failed: " + error.getErrorType(), false);
-                    
+
                     // specific call error
                     //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
                     //DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
                     //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
-                    
                     break;
                 } else {
                     System.out.println("Getting temperature hasn't been processed yet: " + procState);
@@ -209,18 +231,27 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
             if (thermoValues != null) {
                 
+                pid++;
+                
                 // printing results        
                 System.out.println("Temperature on the node " + node1.getId() + ": "
                         + thermoValues.getValue() + "." + thermoValues.getFractialValue() + " *C"
                 );
                 
+                // getting additional info of the last call
+                DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
+                
                 //String msqMqtt = thermoValues.toPrettyFormattedString();
                 //Float temperature = Float.parseFloat(thermoValues.getValue() + "." + thermoValues.getFractialValue());
                 
                 // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                String temperatureToBeSent = "{\"e\":["
-			+ "{\"n\": \"temperature\"," + "\"u\": \"Cel\"," + "\"v\":" + thermoValues.getValue() + "." + thermoValues.getFractialValue() + "}],"
-			+ "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + ":net-addr:" + node1.getId() + "\""
+                String temperatureToBeSent =
+			  "{\"e\":[{\"n\":\"temperature\"," + "\"u\":\"Cel\"," + "\"v\":" + thermoValues.getValue() + "." + thermoValues.getFractialValue() + "}],"
+                        + "\"iqrf\":[{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + "," 
+                        + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.THERMOMETER + "," + "\"pcmd\":" + "\"" + Thermometer.MethodID.GET.name().toLowerCase() + "\"," 
+                        + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
+                        + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                        + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
                         + "}";
                 
                 // try to get JsonObject using minimal-json
@@ -228,8 +259,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         
                 // send data to mqtt
                 try {
-                    mqttCommunicator.publish(pubTopic, 2, temperatureToBeSent.getBytes());
-                    mqttCommunicator.publish(Topics.SENSOR_THERMOMETER, 2, temperatureToBeSent.getBytes());
+                    mqttCommunicator.publish(Topics.SENSORS_THERMOMETERS, 2, temperatureToBeSent.getBytes());
                 } catch (MqttException ex) {
                     System.err.println("Error while publishing sync dpa message.");
                 }                
@@ -245,53 +275,121 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         simply.destroy();
     }
     
-    public static boolean sendDPARequest(String topic, String msgSenML) {
+    public static String sendDPAWebRequest(String topic, String msgSenML) {
+        
+        String valueN = null;
+        String valueSV = null;
+        
+        int valuePID = 0;
+        String valueDPA = null;
+        int valueNADR = 0;
         
         // parse senml json msg request       
         JsonArray elements = Json.parse(msgSenML).asObject().get("e").asArray();
         
         for (JsonValue element : elements) {
-            String value  = element.asObject().getString("sv", "");
-            System.out.println("Published action: " + value);
+            valueN  = element.asObject().getString("n", "");
+            valueSV  = element.asObject().getString("sv", "");
+            //System.out.println("Published action on e element: " + "n:" + valueN + " - " + "sv:" + valueSV);
+        }
+        
+        // parse senml json msg request       
+        elements = Json.parse(msgSenML).asObject().get("iqrf").asArray();
+
+        for (JsonValue element : elements) {
+            valuePID  = element.asObject().getInt("pid", 0);
+            valueDPA = element.asObject().getString("dpa", "");
+            valueNADR  = element.asObject().getInt("nadr", 0);
+            //System.out.println("Published action on iqrf element: " + "pid:" + valuePID + " - " + "dpa:" + valueDPA + " - " + "nadr:" + valueNADR);
         }
         
         // there is a need to select topic
-        if (Topics.ACTUATOR_LEDR.equals(topic)) {
+        if (Topics.ACTUATORS_LEDS.equals(topic)) {
         
-            // getting LEDR interface
-            LEDR ledr = node1.getDeviceObject(LEDR.class);
-            if (ledr == null) {
-                printMessageAndExit("LEDR doesn't exist or is not enabled", false);
-                return false;
-            }
-            
-            // TODO: - do action based on published request - pulsing for now
-            VoidType setResult = ledr.pulse();
-            if (setResult == null) {
-                processNullResult(ledr, "Pulsing LEDR failed",
-                        "Pulsing LEDR hasn't been processed yet"
-                );
-                return false;
-            }
-        } else if (Topics.ACTUATOR_LEDG.equals(topic)) {
-            
-            // getting LEDG interface
-            LEDG ledg = node1.getDeviceObject(LEDG.class);
-            if (ledg == null) {
-                printMessageAndExit("LEDG doesn't exist or is not enabled", false);
-                return false;
-            }
+            // TODO: check nodeID and add selection
+            if(valueDPA.equalsIgnoreCase("REQ")) {
 
-            // TODO: - do action based on published request - pulsing for now
-            VoidType setResult = ledg.pulse();
-            if (setResult == null) {
-                processNullResult(ledg, "Pulsing LEDG failed",
-                        "Pulsing LEDG hasn't been processed yet"
-                );
-                return false;
-            } 
+                if(valueN.equalsIgnoreCase("LEDR")) {
+
+                    LEDR ledr = node1.getDeviceObject(LEDR.class);
+                    if (ledr == null) {
+                        printMessageAndExit("LEDR doesn't exist or is not enabled", false);
+                        return null;
+                    }
+
+                    if(valueSV.equalsIgnoreCase("PULSE")) {
+
+                        VoidType setResult = ledr.pulse();
+                        if (setResult == null) {
+                            processNullResult(ledr, "Pulsing LEDR failed",
+                                    "Pulsing LEDR hasn't been processed yet"
+                            );
+                            return null;
+                        }
+
+                        // getting additional info of the last call
+                        DPA_AdditionalInfo dpaAddInfo = ledr.getDPA_AdditionalInfoOfLastCall();
+
+                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                        webResponseToBeSent
+                                = "{\"e\":[{\"n\":\"ledr\"," + "\"sv\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\"}],"
+                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + ","
+                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.LEDR + "," + "\"pcmd\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\","
+                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
+                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
+                                + "}";
+
+                        webRequestReceived = true;
+                        return webResponseToBeSent;
+                    }
+                }
+            }
         }
         
+        return null;
+    }
+    
+    public static boolean sendDPAAsyncRequest() {
+        
+        pidAsync++;
+        
+        // getting LEDR interface
+        LEDR ledr = node1.getDeviceObject(LEDR.class);
+        if (ledr == null) {
+            printMessageAndExit("LEDR doesn't exist or is not enabled", false);
+            return false;
+        }
+
+        // TODO: - do action based on published request - pulsing for now
+        VoidType setResult = ledr.pulse();
+        if (setResult == null) {
+            processNullResult(ledr, "Pulsing LEDR failed",
+                    "Pulsing LEDR hasn't been processed yet"
+            );
+            return false;
+        }
+        
+        // getting additional info of the last call
+        DPA_AdditionalInfo dpaAddInfo = ledr.getDPA_AdditionalInfoOfLastCall();
+
+        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+        String asyncRequestToBeSent 
+                = "{\"e\":[{\"n\":\"ledr\"," + "\"sv\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\"}],"
+                + "\"iqrf\":[{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + ","
+                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.LEDR + "," + "\"pcmd\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\","
+                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
+                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
+                + "}";
+
+        // send data to mqtt
+        try {
+            mqttCommunicator.publish(Topics.ASYNCHRONOUS_RESPONSES, 2, asyncRequestToBeSent.getBytes());
+        } catch (MqttException ex) {
+            System.err.println("Error while publishing sync dpa message.");
+        }
+
         return true;
     }
     
@@ -310,43 +408,14 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     @Override
     public void onAsynchronousMessage(DPA_AsynchronousMessage message) {
         
-        // now only for testing
+        System.out.println("New asynchronous message.");
         
-        System.out.println("New asynchronous message: ");
+        //String nodeId = message.getMessageSource().getNodeId();
+        //int peripheralNumber = message.getMessageSource().getPeripheralNumber();
+        //short[] mainData = (short[])message.getMainData();        
+        //DPA_AdditionalInfo additionalData = (DPA_AdditionalInfo)message.getAdditionalData();
         
-        System.out.println("Message source: "
-            + "network ID= " + message.getMessageSource().getNetworkId()
-            + ", node ID= " + message.getMessageSource().getNodeId()
-            + ", peripheral number= " + message.getMessageSource().getPeripheralNumber()
-        );
-        
-        System.out.println("Main data: " + message.getMainData());
-        System.out.println("Additional data: " + message.getAdditionalData());
-        System.out.println();
-        
-        
-        // publishing async message
-        StringBuilder strBuilder = new StringBuilder();
-        String NEW_LINE = System.getProperty("line.separator");
-        
-        strBuilder.append("{" + NEW_LINE);
-        strBuilder.append(" Network ID: " + message.getMessageSource().getNetworkId() + NEW_LINE);
-        strBuilder.append(" Node ID: " + message.getMessageSource().getNodeId() + NEW_LINE);
-        strBuilder.append(
-                " Device Interface ID: " 
-                + message.getMessageSource().getPeripheralNumber() + NEW_LINE
-        );
-        strBuilder.append(" Main DATA: " + message.getMainData() + NEW_LINE);
-        strBuilder.append(" Additional DATA: " + message.getAdditionalData() + NEW_LINE);
-        
-        strBuilder.append("}");
-        
-        String msqMqtt = strBuilder.toString();
-        
-        try {
-            mqttCommunicator.publish(pubTopic, 2, msqMqtt.getBytes());
-        } catch (MqttException ex) {
-            System.err.println("Error while publishing async dpa message: " + ex.getMessage());
-        }
+        // sending control message back to network based on received message
+        asyncRequestReceived = true;
     }
 }

@@ -236,7 +236,12 @@ public class Communicator implements MqttCallback {
         // get data as string
         final String msg = new String(message.getPayload());
         
-        boolean result = OpenGatewayTest.sendDPARequest(topic, msg);
-        // TODO: confirm based on result
+        String resultToBeSent = OpenGatewayTest.sendDPAWebRequest(topic, msg);
+
+/*        
+        if(resultToBeSent != null) {
+            publish(Topics.ACTUATORS_RESPONSES_LEDS, 2, resultToBeSent.getBytes());
+        }
+*/
     }
 }
