@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.types;
+package com.microrisc.jlibdpa.convertors;
 
-import com.microrisc.jlibdpa.convertors.AbstractResponseConvertor;
+import com.microrisc.jlibdpa.types.DPAResponse;
 
 /**
- * Encapsulating information about request, which will be sent into IQRF
- * network.
+ * Abstract class for converters which providing converting IQRF data into
+ * {@link DPAResponse}. <br>
+ * All implementations must have method with annotation
+ * {@link ConvertorFactoryMethod} which identify method returning instance.
  *
  * @author Martin Strouhal
  */
-public interface DPARequest extends DPAData {
+public abstract class AbstractResponseConvertor {
 
-    public int getAdress();
+    public abstract DPAResponse convert(short[] data);
 
-    public int getPeripheral();
-
-    public int getCommand();
-
-    public int getHWPID();
-
-    public short[] getAdditionalData();
-
-    public Class<? extends AbstractResponseConvertor> getResponseConvertor();
 }

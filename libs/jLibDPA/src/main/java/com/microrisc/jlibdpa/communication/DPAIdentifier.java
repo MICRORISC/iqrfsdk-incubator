@@ -16,8 +16,8 @@
 package com.microrisc.jlibdpa.communication;
 
 import com.microrisc.jlibdpa.DPAProperties;
-import com.microrisc.jlibdpa.DPAResponseCode;
 import com.microrisc.jlibdpa.types.DPARequest;
+import com.microrisc.jlibdpa.types.DPAResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class DPAIdentifier {
 
-    private static final Logger logger = LoggerFactory.getLogger(DPAIdentifier.class);
+    private static final Logger log = LoggerFactory.getLogger(DPAIdentifier.class);
 
     public enum DPAReplyMessagesTypes {
         CONFIRMATION,
@@ -38,7 +38,7 @@ public final class DPAIdentifier {
     }
 
     public static DPAReplyMessagesTypes identify(DPARequest lastRequest, short[] receivedData) {
-        logger.debug("identify - start: lastRequest={}, receivedData={}", lastRequest, receivedData);
+        log.debug("identify - start: lastRequest={}, receivedData={}", lastRequest, receivedData);
         DPAReplyMessagesTypes typeToReturn = DPAReplyMessagesTypes.UNKNOWN;
         // checking for illegall data
         if (receivedData != null && receivedData.length >= DPAProperties.HW_PROFILE_START + DPAProperties.HW_PROFILE_LENGTH) {
@@ -58,7 +58,7 @@ public final class DPAIdentifier {
             }
         }
 
-        logger.debug("identify - end: {}", typeToReturn);
+        log.debug("identify - end: {}", typeToReturn);
         return typeToReturn;
     }
 

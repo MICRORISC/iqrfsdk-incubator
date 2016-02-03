@@ -62,8 +62,4 @@ public class HexConvertor {
         int sLength = convertedString.length();
         return convertedString.substring(0, (sLength < 2) ? 0 : sLength - 2);
     }
-    
-    public static void main(String[] args) {
-        System.out.println(getShortArrayAsStringWithHex(new short[]{0x0, 0x0, 0xA, 0x80, 0x3F, 0x12, 0x0, 0x0, 0x20, 0x0, 0x2}));
-    }
 }

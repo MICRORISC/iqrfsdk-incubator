@@ -18,8 +18,8 @@ package com.microrisc.jlibiqrf.iqrfLayer.udp;
 import com.microrisc.jlibiqrf.iqrfLayer.AbstractIQRFLayer;
 import com.microrisc.jlibiqrf.iqrfLayer.udp.gweth.GWETH_DataTransformer;
 import com.microrisc.jlibiqrf.types.IQRFData;
-import com.microrisc.jlibiqrf.types.IQRFLayerException;
 import com.microrisc.jlibiqrf.types.IQRFError;
+import com.microrisc.jlibiqrf.types.IQRFLayerException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -57,7 +57,7 @@ public final class UDPIQRFLayer extends AbstractIQRFLayer {
     /** Local port number. */
     private int localPort = -1;
 
-    /** Server IP addres to which the requests will be sent. */
+    /** Server IP address to which the requests will be sent. */
     private InetAddress targetAddress = null;
 
     /** Remote port number. */

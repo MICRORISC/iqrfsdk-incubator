@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.types;
+package com.microrisc.jlibdpa.timing;
 
-import com.microrisc.jlibdpa.convertors.AbstractResponseConvertor;
+import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 
 /**
- * Encapsulating information about request, which will be sent into IQRF
- * network.
  *
  * @author Martin Strouhal
  */
-public interface DPARequest extends DPAData {
+public interface TimingManager {
 
-    public int getAdress();
+    public void init(DPAConfiguration config);
 
-    public int getPeripheral();
+    public boolean isFree();
 
-    public int getCommand();
+    /** Reaming time in milliseconds. */
+    public int getReamingTime();
 
-    public int getHWPID();
+    public void startWithUnknownTime();
 
-    public short[] getAdditionalData();
-
-    public Class<? extends AbstractResponseConvertor> getResponseConvertor();
 }

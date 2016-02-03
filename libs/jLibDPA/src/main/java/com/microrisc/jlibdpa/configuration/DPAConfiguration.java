@@ -15,7 +15,7 @@
  */
 package com.microrisc.jlibdpa.configuration;
 
-import com.microrisc.jlibdpa.timing.TimeManager;
+import com.microrisc.jlibdpa.timing.TimingManager;
 import com.microrisc.jlibiqrf.configuration.IQRFConfiguration;
 
 /**
@@ -30,17 +30,17 @@ public class DPAConfiguration {
     /** When isn't computed timing from confirmation, this timeout is used. Time
      * is in [s] */
     private final int unknownTimeout;
-    private Class<? extends TimeManager> timeManagerClass;
+    private Class<? extends TimingManager> timeManagerClass;
     
     private IQRFConfiguration iqrfConfig;
 
     //TODO improve by factory pattern
     
-    public DPAConfiguration(IQRFConfiguration config, Class<? extends TimeManager> timeManager){
+    public DPAConfiguration(IQRFConfiguration config, Class<? extends TimingManager> timeManager){
         this(config, timeManager, DEFAULT_UNKWNOWN_TIMEOUT);
     }
     
-    public DPAConfiguration(IQRFConfiguration config, Class<? extends TimeManager> timeManager, int unknownTimeout) {
+    public DPAConfiguration(IQRFConfiguration config, Class<? extends TimingManager> timeManager, int unknownTimeout) {
         this.unknownTimeout = unknownTimeout;
         iqrfConfig = config;
         timeManagerClass = timeManager;
@@ -54,7 +54,7 @@ public class DPAConfiguration {
         return iqrfConfig;
     }
 
-    public Class<? extends TimeManager> getTimeManagerClass() {
+    public Class<? extends TimingManager> getTimingManagerClass() {
         return timeManagerClass;
     }
 

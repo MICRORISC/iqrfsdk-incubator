@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.timing;
+package com.microrisc.jlibdpa.convertors;
 
-import com.microrisc.jlibdpa.configuration.DPAConfiguration;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation type. Indicates, that the annotated method is usable for get instance of {@link AbstractResponseConvertor}.
+ * 
  * @author Martin Strouhal
  */
-public interface TimeManager {
-
-    public void init(DPAConfiguration config);
-
-    public boolean isFree();
-
-    /** Reaming time in milliseconds. */
-    public int getRemaingTime();
-
-    public void startWithUnknownTime();
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ConvertorFactoryMethod {
 }

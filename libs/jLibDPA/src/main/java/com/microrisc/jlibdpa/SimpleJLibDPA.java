@@ -22,6 +22,8 @@ import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 import com.microrisc.jlibdpa.types.DPARequest;
 import com.microrisc.jlibdpa.types.DPAResponse;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides services for communicating via JLibIQRF to IQRF network.
@@ -30,49 +32,70 @@ import java.util.UUID;
  */
 public class SimpleJLibDPA implements JLibDPA {
 
+    private final static Logger log = LoggerFactory.getLogger(SimpleJLibDPA.class);
+
     private final DPACommunicator communicator;
     private final ResultCollector resultCollector;
     private final ListenersManager listenersManager;
 
     public SimpleJLibDPA(DPAConfiguration config) {
+        log.debug("SimpleJLibDPA - start: config={}", config);
         resultCollector = new ResultCollector(config);
         listenersManager = new ListenersManager();
         listenersManager.registerNewListener(resultCollector);
-        communicator = new DPACommunicator();
-        communicator.initSender(config, listenersManager);
+        communicator = new DPACommunicator(listenersManager);
+        communicator.initSender(config);
+        log.debug("SimpleJLibDPA - end");
     }
 
 
     @Override
     public DPAResponse sendDPARequest(DPARequest request) {
-        communicator.invokeRequest(request);
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        log.debug("sendDPARequest - start: request={}", request);
+        UUID uid = communicator.invokeRequest(request);
+        DPAResponse response = resultCollector.getResult(uid);
+        log.debug("sendDPARequest - end: {}", response);
+        return response;
     }
 
     @Override
     public UUID sendAsyncDPARequest(DPARequest request) {
-        return communicator.invokeRequest(request);
+        log.debug("sendAsyncDPARequest - start: request={}", request);
+        UUID uid = communicator.invokeRequest(request);
+        log.debug("sendAsyncDPARequest - end: {}", uid);
+        return uid;
     }
 
     @Override
     public DPAResponse getAsyncResult(UUID uid) {
-        return resultCollector.getResult(uid);
+        log.debug("getAsyncResult - start: uid={}", uid);
+        DPAResponse response = resultCollector.getResult(uid);
+        log.debug("getAsyncResult - end: {}", response);
+        return response;
     }
 
     @Override
     public void addReceivingListener(DPAReceiver receiver) {
+        log.debug("addReceivingListener - start: receiver={}", receiver);
+        // receiver is checked while registering
         listenersManager.registerNewListener(receiver);
+        log.debug("addReceivingListener - end");
     }
 
     @Override
     public void removeReceivingListener(DPAReceiver receiver) {
+        log.debug("removeReceivingListener - start: receiver={}", receiver);
+        // receiver is checked while unregistering
         listenersManager.unregisterListener(receiver);
+        log.debug("removeReceivingListener - end");
     }
 
     @Override
     public void destroy() {
+        log.debug("destroy - start");
         listenersManager.unregisterAllListeners();
         resultCollector.destroy();
         //TODO destroy communicator
+        log.debug("destroy - end");
     }
 }

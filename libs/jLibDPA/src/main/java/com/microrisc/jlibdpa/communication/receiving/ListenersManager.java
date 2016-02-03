@@ -15,6 +15,8 @@
  */
 package com.microrisc.jlibdpa.communication.receiving;
 
+import com.microrisc.jlibdpa.types.DPAConfirmation;
+import com.microrisc.jlibdpa.types.DPAResponse;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -41,5 +43,23 @@ public class ListenersManager {
 
     public void unregisterAllListeners() {
         listeners.clear();
+    }
+    
+    public void callListenerResponse(DPAResponse response){
+        for (DPAReceiver listener : listeners) {
+            listener.onGetResponse(response);
+        }
+    }
+    
+    public void callListenerConfirmation(DPAConfirmation confirmation){
+        for (DPAReceiver listener : listeners) {
+            listener.onGetConfirmation(confirmation);
+        }
+    }
+    
+    public void callListenerAsyncMsg(){
+        for (DPAReceiver listener : listeners) {
+            listener.onGetAsyncMsg();
+        }
     }
 }

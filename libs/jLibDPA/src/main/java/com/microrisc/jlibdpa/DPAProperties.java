@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 public final class DPAProperties {
 
     /** Logger. */
-    private static final Logger logger = LoggerFactory.getLogger(DPAProperties.class);
+    private static final Logger log = LoggerFactory.getLogger(DPAProperties.class);
 
     /** NADR properties. */
     public static class NADR {

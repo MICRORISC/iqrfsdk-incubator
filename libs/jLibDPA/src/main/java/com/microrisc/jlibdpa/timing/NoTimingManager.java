@@ -18,37 +18,38 @@ package com.microrisc.jlibdpa.timing;
 import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
 import com.microrisc.jlibdpa.types.DPAConfirmation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Martin Strouhal
  */
-public class NoTimingManager extends DPAReceiver implements TimeManager {
+public class NoTimingManager extends DPAReceiver implements TimingManager {
+
+    private final static Logger log = LoggerFactory.getLogger(NoTimingManager.class);
 
     public void init(DPAConfiguration config) {
-        //TODO init
+        log.debug("init - start: config={}", config);
+        log.info("NoTimingManager implementation is used!");
+        log.debug("init - end");
     }
 
     public boolean isFree() {
-        //TODO implement time checking
         return true;
     }
 
     /** Reaming time in milliseconds. */
-    public int getRemaingTime() {
+    public int getReamingTime() {
         return 0;
     }
 
     public void startWithUnknownTime() {
-        //TODO
-    }
-
-    private void computeAndAddNewTime(DPAConfirmation confirmation) {
-        //TODO implement adding time
+        log.debug("startWithUnknownTime - start & end (NoTimingManager)");
     }
 
     @Override
     public void onGetConfirmation(DPAConfirmation confirmation) {
-        computeAndAddNewTime(confirmation);
+        log.debug("onGetConfirmation - start & end (NoTimingManager)");
     }
 }

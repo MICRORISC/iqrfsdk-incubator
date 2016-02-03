@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides functions for collecting results of individual requests.
@@ -30,40 +32,50 @@ import java.util.UUID;
  */
 public class ResultCollector extends DPAReceiver {
 
+    private final static Logger log = LoggerFactory.getLogger(ResultCollector.class);
     private final Map<UUID, DPAResponse> responseMap;
 
     public ResultCollector(DPAConfiguration config) {
+        log.debug("ResultCollector - start: config={}", config);
         int countOfResults = config.getCountOfResults();
         //TODO check
         responseMap = createCachedMap(countOfResults);
+        log.debug("ResultCollector - end");
     }
 
     private <K, V> Map<K, V> createCachedMap(final int maxCapacity) {
-        return new LinkedHashMap<K, V>(maxCapacity * 10 / 7, 0.7f, true) {
+        log.debug("createCachedMap - start: maxCapacity={}", maxCapacity);
+        Map<K, V> map = new LinkedHashMap<K, V>(maxCapacity * 10 / 7, 0.7f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > maxCapacity;
             }
         };
+        log.debug("createCachedMap - end: {}", map);
+        return map;
     }
 
     @Override
     public void onGetResponse(DPAResponse response) {
-        //TODO log
+        log.debug("onGetResponse - start: response={}", response);
         //TODO check maybe?
         responseMap.put(response.getUUID(), response);
+        log.debug("onGetResponse - end");
     }
 
     public DPAResponse getResult(UUID uid) {
+        log.debug("getResult - start: uid={}", uid);
         DPAResponse response = responseMap.get(uid);
         if(response == null){
             //TODO error
             throw new RuntimeException("Result was removed!");
         }
+        log.debug("getResult - end: {}", response);
         return response;
     }
 
     public void destroy() {
+        log.debug("destroy - start");
         //TODO check correct destroying
         Set<UUID> uuids = responseMap.keySet();
         for (UUID uid : uuids) {
@@ -71,5 +83,6 @@ public class ResultCollector extends DPAReceiver {
             responseToDestroy = null;
             responseMap.remove(uid);
         }
+        log.debug("destroy - end");
     }
 }
