@@ -15,28 +15,27 @@
  */
 package com.microrisc.jlibdpa;
 
-import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
-import com.microrisc.jlibdpa.types.DPARequest;
-import com.microrisc.jlibdpa.types.DPAResponse;
-import java.util.UUID;
-
 /**
- *  Public interface for using JLibDPA library.
- * 
+ *
  * @author Martin Strouhal
  */
-public interface JLibDPA {
-    
-    public DPAResponse sendDPARequest(DPARequest request);
-    
-    public UUID sendAsyncDPARequest(DPARequest request);
-    
-    public DPAResponse getAsyncResult(UUID uid);
-    
-    public void addReceivingListener(DPAReceiver receiver);
-    
-    public void removeReceivingListener(DPAReceiver receiver);
-    
-    public void destroy();
-    
+public class JLibDPAException extends RuntimeException {
+
+    /**
+     * Creates a new instance of <code>JLibDPAException</code> without detail
+     * message.
+     */
+    public JLibDPAException() {
+    }
+
+
+    /**
+     * Constructs an instance of <code>JLibDPAException</code> with the
+     * specified detail message.
+     *
+     * @param msg the detail message.
+     */
+    public JLibDPAException(String msg) {
+        super(msg);
+    }
 }

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa.types;
+
+import java.util.UUID;
 
 /**
  *
  * @author Martin Strouhal
  */
-public class DPAResponse {
+public interface DPAResponse {
+
+    UUID getUUID();
     
 }

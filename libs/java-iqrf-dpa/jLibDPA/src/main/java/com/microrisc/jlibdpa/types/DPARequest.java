@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa.types;
+
+import com.microrisc.jlibdpa.convertors.AbstractResponseConvertor;
 
 /**
  * Encapsulating information about request, which will be sent into IQRF
@@ -33,4 +35,5 @@ public interface DPARequest extends DPAData {
 
     public short[] getAdditionalData();
 
+    public Class<? extends AbstractResponseConvertor> getResponseConvertor();
 }

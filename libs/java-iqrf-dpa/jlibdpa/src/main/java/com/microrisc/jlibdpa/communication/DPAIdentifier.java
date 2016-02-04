@@ -16,18 +16,19 @@
 package com.microrisc.jlibdpa.communication;
 
 import com.microrisc.jlibdpa.DPAProperties;
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
+import com.microrisc.jlibdpa.types.DPARequest;
+import com.microrisc.jlibdpa.types.DPAResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  Providing services for identification of received data.
- * 
+ * Providing services for identification of received data.
+ *
  * @author Martin Strouhal
  */
 public final class DPAIdentifier {
 
-    private static final Logger logger = LoggerFactory.getLogger(DPAIdentifier.class);
+    private static final Logger log = LoggerFactory.getLogger(DPAIdentifier.class);
 
     public enum DPAReplyMessagesTypes {
         CONFIRMATION,
@@ -37,7 +38,7 @@ public final class DPAIdentifier {
     }
 
     public static DPAReplyMessagesTypes identify(DPARequest lastRequest, short[] receivedData) {
-        logger.debug("identify - start: lastRequest={}, receivedData={}", lastRequest, receivedData);
+        log.debug("identify - start: lastRequest={}, receivedData={}", lastRequest, receivedData);
         DPAReplyMessagesTypes typeToReturn = DPAReplyMessagesTypes.UNKNOWN;
         // checking for illegall data
         if (receivedData != null && receivedData.length >= DPAProperties.HW_PROFILE_START + DPAProperties.HW_PROFILE_LENGTH) {
@@ -47,17 +48,17 @@ public final class DPAIdentifier {
             }
 
             // checking confirmation
-            if (false) {
+            if (receivedData[DPAProperties.RESPONSE_CODE_START] == DPAResponseCode.CONFIRMATION.getCodeValue()) {
                 typeToReturn = DPAReplyMessagesTypes.CONFIRMATION;
             }
-            //TODO identification of confirmation and async msg
-
+            //TODO identification of async msg
+           
             if (false) {
                 typeToReturn = DPAReplyMessagesTypes.ASYNC;
             }
         }
 
-        logger.debug("identify - end: {}", typeToReturn);
+        log.debug("identify - end: {}", typeToReturn);
         return typeToReturn;
     }
 

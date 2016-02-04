@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa;
+package com.microrisc.jlibdpa.types;
 
-import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
-import com.microrisc.jlibdpa.types.DPARequest;
-import com.microrisc.jlibdpa.types.DPAResponse;
 import java.util.UUID;
 
 /**
- *  Public interface for using JLibDPA library.
- * 
+ * Implementation of {@link DPAResponse} for unsuccessfully processed requests
+ * providing information about occurring error.¨
+ *
  * @author Martin Strouhal
  */
-public interface JLibDPA {
-    
-    public DPAResponse sendDPARequest(DPARequest request);
-    
-    public UUID sendAsyncDPARequest(DPARequest request);
-    
-    public DPAResponse getAsyncResult(UUID uid);
-    
-    public void addReceivingListener(DPAReceiver receiver);
-    
-    public void removeReceivingListener(DPAReceiver receiver);
-    
-    public void destroy();
-    
+public class ErrorResponse implements DPAResponse {
+
+    private final UUID uid;
+    private final String error;
+
+    public ErrorResponse(UUID uid, String error) {
+        this.uid = uid;
+        this.error = error;
+    }
+
+    @Override
+    public UUID getUUID() {
+        return uid;
+    }
+
+    public String getError() {
+        return error;
+    }
 }

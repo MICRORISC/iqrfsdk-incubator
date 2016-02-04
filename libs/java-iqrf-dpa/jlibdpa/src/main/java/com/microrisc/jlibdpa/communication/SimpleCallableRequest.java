@@ -15,7 +15,7 @@
  */
 package com.microrisc.jlibdpa.communication;
 
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
+import com.microrisc.jlibdpa.types.DPARequest;
 import java.util.UUID;
 
 /**

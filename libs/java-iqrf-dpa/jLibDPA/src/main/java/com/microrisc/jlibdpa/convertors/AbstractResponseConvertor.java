@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa;
+package com.microrisc.jlibdpa.convertors;
 
-import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
-import com.microrisc.jlibdpa.types.DPARequest;
 import com.microrisc.jlibdpa.types.DPAResponse;
-import java.util.UUID;
 
 /**
- *  Public interface for using JLibDPA library.
- * 
+ * Abstract class for converters which providing converting IQRF data into
+ * {@link DPAResponse}. <br>
+ * All implementations must have method with annotation
+ * {@link ConvertorFactoryMethod} which identify method returning instance.
+ *
  * @author Martin Strouhal
  */
-public interface JLibDPA {
-    
-    public DPAResponse sendDPARequest(DPARequest request);
-    
-    public UUID sendAsyncDPARequest(DPARequest request);
-    
-    public DPAResponse getAsyncResult(UUID uid);
-    
-    public void addReceivingListener(DPAReceiver receiver);
-    
-    public void removeReceivingListener(DPAReceiver receiver);
-    
-    public void destroy();
-    
+public abstract class AbstractResponseConvertor {
+
+    public abstract DPAResponse convert(short[] data);
+
 }

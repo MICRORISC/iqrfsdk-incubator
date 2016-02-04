@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.microrisc.jlibdpa;
+package com.microrisc.jlibdpa.types;
 
 /**
  * Response codes.

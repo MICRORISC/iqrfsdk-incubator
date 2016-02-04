@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa;
+package com.microrisc.jlibdpa.convertors;
 
-import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
-import com.microrisc.jlibdpa.types.DPARequest;
 import com.microrisc.jlibdpa.types.DPAResponse;
-import java.util.UUID;
 
 /**
- *  Public interface for using JLibDPA library.
- * 
+ *
  * @author Martin Strouhal
  */
-public interface JLibDPA {
+public class SimpleResponseConvertor extends AbstractResponseConvertor {
+
+    @Override
+    public DPAResponse convert(short[] data) {
+        //TODO documentation
+        //TODO log
+        //TODO implementation
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     
-    public DPAResponse sendDPARequest(DPARequest request);
+    private final static SimpleResponseConvertor instance = new SimpleResponseConvertor();
     
-    public UUID sendAsyncDPARequest(DPARequest request);
+    private SimpleResponseConvertor(){}
     
-    public DPAResponse getAsyncResult(UUID uid);
-    
-    public void addReceivingListener(DPAReceiver receiver);
-    
-    public void removeReceivingListener(DPAReceiver receiver);
-    
-    public void destroy();
+    @ConvertorFactoryMethod
+    public static SimpleResponseConvertor getInstance() {
+        return instance;
+    }
     
 }

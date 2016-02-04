@@ -16,13 +16,14 @@
 package com.microrisc.jlibdpa;
 
 import com.microrisc.jlibdpa.communication.DPACommunicator;
-import com.microrisc.jlibdpa.communication.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.DPAReceiver;
+import com.microrisc.jlibdpa.communication.receiving.ListenersManager;
 import com.microrisc.jlibdpa.configuration.DPAConfiguration;
-import com.microrisc.jlibdpa.dpaTypes.DPARequest;
-import com.microrisc.jlibdpa.dpaTypes.DPAResponse;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import com.microrisc.jlibdpa.types.DPARequest;
+import com.microrisc.jlibdpa.types.DPAResponse;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides services for communicating via JLibIQRF to IQRF network.
@@ -31,48 +32,70 @@ import java.util.UUID;
  */
 public class SimpleJLibDPA implements JLibDPA {
 
-    private DPACommunicator sender;
-    private ResultCollector resultCollector;
-    private Set<DPAReceiver> listeners;
+    private final static Logger log = LoggerFactory.getLogger(SimpleJLibDPA.class);
+
+    private final DPACommunicator communicator;
+    private final ResultCollector resultCollector;
+    private final ListenersManager listenersManager;
 
     public SimpleJLibDPA(DPAConfiguration config) {
-        resultCollector = new ResultCollector();
-        listeners = new LinkedHashSet<>();
-        sender = new DPACommunicator();
-        sender.initSender(config);
+        log.debug("SimpleJLibDPA - start: config={}", config);
+        resultCollector = new ResultCollector(config);
+        listenersManager = new ListenersManager();
+        listenersManager.registerNewListener(resultCollector);
+        communicator = new DPACommunicator(listenersManager);
+        communicator.initSender(config);
+        log.debug("SimpleJLibDPA - end");
     }
 
 
     @Override
     public DPAResponse sendDPARequest(DPARequest request) {
-        sender.invokeRequest(request);
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        log.debug("sendDPARequest - start: request={}", request);
+        UUID uid = communicator.invokeRequest(request);
+        DPAResponse response = resultCollector.getResult(uid);
+        log.debug("sendDPARequest - end: {}", response);
+        return response;
     }
 
     @Override
     public UUID sendAsyncDPARequest(DPARequest request) {
-        return sender.invokeRequest(request);
+        log.debug("sendAsyncDPARequest - start: request={}", request);
+        UUID uid = communicator.invokeRequest(request);
+        log.debug("sendAsyncDPARequest - end: {}", uid);
+        return uid;
     }
 
     @Override
     public DPAResponse getAsyncResult(UUID uid) {
-        return resultCollector.getResult(uid);
+        log.debug("getAsyncResult - start: uid={}", uid);
+        DPAResponse response = resultCollector.getResult(uid);
+        log.debug("getAsyncResult - end: {}", response);
+        return response;
     }
 
     @Override
     public void addReceivingListener(DPAReceiver receiver) {
-        listeners.add(receiver);
+        log.debug("addReceivingListener - start: receiver={}", receiver);
+        // receiver is checked while registering
+        listenersManager.registerNewListener(receiver);
+        log.debug("addReceivingListener - end");
     }
 
     @Override
     public void removeReceivingListener(DPAReceiver receiver) {
-        listeners.remove(receiver);
+        log.debug("removeReceivingListener - start: receiver={}", receiver);
+        // receiver is checked while unregistering
+        listenersManager.unregisterListener(receiver);
+        log.debug("removeReceivingListener - end");
     }
 
     @Override
     public void destroy() {
-        listeners.clear();
-        sender = null;
-        resultCollector = null;
+        log.debug("destroy - start");
+        listenersManager.unregisterAllListeners();
+        resultCollector.destroy();
+        //TODO destroy communicator
+        log.debug("destroy - end");
     }
 }

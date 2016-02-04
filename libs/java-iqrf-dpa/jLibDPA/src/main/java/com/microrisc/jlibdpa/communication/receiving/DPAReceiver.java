@@ -13,38 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.communication;
+package com.microrisc.jlibdpa.communication.receiving;
 
-import com.microrisc.jlibdpa.dpaTypes.DPAConfirmation;
-import com.microrisc.jlibdpa.dpaTypes.DPAResponse;
+import com.microrisc.jlibdpa.types.DPAConfirmation;
+import com.microrisc.jlibdpa.types.DPAResponse;
 
 /**
  * Provides listening interface for receiving messages from IQRF network in DPA
- * format. Used methods must be overrided, in other case methods don't do
+ * format. Used methods must be overridden, in other case methods don't do
  * anything.
  *
  * @author Martin Strouhal
  */
-public interface DPAReceiver {
+public abstract class DPAReceiver {
 
     /**
      * This method is called on every receive async data from IQRF network.
      */
-    public default void onGetAsyncMsg() {
+    public void onGetAsyncMsg() {
     }
 
     /**
      * This method is called on every receive response data from IQRF network.
+     *
      * @param response which has been received
      */
-    public default void onGetResponse(DPAResponse response) {
+    public void onGetResponse(DPAResponse response) {
     }
 
     /**
      * This method is called on every receive confirmation data from IQRF
      * network.
+     *
      * @param confirmation which has been received
      */
-    public default void onGetConfirmation(DPAConfirmation confirmation) {
+    public void onGetConfirmation(DPAConfirmation confirmation) {
     }
 }

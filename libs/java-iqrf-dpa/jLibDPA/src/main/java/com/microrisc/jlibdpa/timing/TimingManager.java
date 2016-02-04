@@ -21,14 +21,14 @@ import com.microrisc.jlibdpa.configuration.DPAConfiguration;
  *
  * @author Martin Strouhal
  */
-public interface TimeManager {
+public interface TimingManager {
 
     public void init(DPAConfiguration config);
 
     public boolean isFree();
 
     /** Reaming time in milliseconds. */
-    public int getRemaingTime();
+    public int getReamingTime();
 
     public void startWithUnknownTime();
 

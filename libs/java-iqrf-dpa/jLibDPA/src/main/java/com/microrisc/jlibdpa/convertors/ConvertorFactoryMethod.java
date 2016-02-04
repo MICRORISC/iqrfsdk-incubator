@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.jlibdpa.dpaTypes;
+package com.microrisc.jlibdpa.convertors;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation type. Indicates, that the annotated method is usable for get instance of {@link AbstractResponseConvertor}.
+ * 
  * @author Martin Strouhal
  */
-public interface DPAData {
-    
-    public short[] getAllData();    
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ConvertorFactoryMethod {
 }
