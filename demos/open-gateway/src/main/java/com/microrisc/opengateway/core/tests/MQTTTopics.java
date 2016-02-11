@@ -24,11 +24,12 @@ public class MQTTTopics {
     
     private static final String CLIENT_ID = "b827eb26c73d";
     
-    public static final String ACTUATORS_LEDS_STD = CLIENT_ID + "/std/actuators/leds";
-    public static final String ACTUATORS_LEDS_LP = CLIENT_ID + "/lp/actuators/leds";
+    public static final String STD_SENSORS_PROTRONIX = CLIENT_ID + "/std/sensors/protronix";
+    public static final String STD_SENSORS_AUSTYN = CLIENT_ID + "/std/sensors/austyn";
+    public static final String LP_SENSORS_IQHOME = CLIENT_ID + "/lp/sensors/iqhome";
     
-    public static final String SENSORS_THERMOMETERS_STD = CLIENT_ID + "/std/sensors/thermometers";
-    public static final String SENSORS_THERMOMETERS_LP = CLIENT_ID + "/lp/sensors/thermometers";
+    public static final String STD_ACTUATORS_AUSTYN = CLIENT_ID + "/std/actuators/austyn";
+    public static final String STD_ACTUATORS_DEVTECH = CLIENT_ID + "/std/actuators/devtech";
     
     public static final String ASYNCHRONOUS_RESPONSES_STD = CLIENT_ID + "/std/asynchronous/responses";
     public static final String ASYNCHRONOUS_RESPONSES_LP = CLIENT_ID + "/lp/asynchronous/responses";

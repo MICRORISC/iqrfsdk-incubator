@@ -28,17 +28,16 @@ import com.microrisc.simply.asynchrony.AsynchronousMessagesListener;
 import com.microrisc.simply.asynchrony.AsynchronousMessagingManager;
 import com.microrisc.simply.errors.CallRequestProcessingError;
 import com.microrisc.simply.iqrf.dpa.DPA_Simply;
-import com.microrisc.simply.iqrf.dpa.v22x.DPA_SimplyFactory;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessage;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessageProperties;
 import com.microrisc.simply.iqrf.dpa.protocol.DPA_ProtocolProperties;
+import com.microrisc.simply.iqrf.dpa.v22x.DPA_SimplyFactory;
+import com.microrisc.simply.iqrf.dpa.v22x.devices.Custom;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.GeneralLED;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.LEDR;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.OS;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.Thermometer;
 import com.microrisc.simply.iqrf.dpa.v22x.types.DPA_AdditionalInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
-import com.microrisc.simply.iqrf.dpa.v22x.types.Thermometer_values;
 import com.microrisc.simply.iqrf.types.VoidType;
 import java.io.File;
 import java.util.UUID;
@@ -105,7 +104,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
         
         String url = protocol + broker + ":" + port;
         mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password);
-        mqttCommunicator.subscribe(MQTTTopics.ACTUATORS_LEDS_LP, 2);
+        //mqttCommunicator.subscribe(MQTTTopics.ACTUATORS_LEDS_LP, 2);
         
         // ASYNC REQUESTS FROM DPA
         
@@ -132,10 +131,10 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
             printMessageAndExit("Node 1 doesn't exist", true);
         }
         
-        // getting Thermometer interface
-        Thermometer thermo = node1.getDeviceObject(Thermometer.class);
-        if ( thermo == null ) {
-            printMessageAndExit("Thermometer doesn't exist on node 1", true);
+        // getting custom interface
+        Custom custom = node1.getDeviceObject(Custom.class);
+        if ( custom == null ) {
+            printMessageAndExit("Custom doesn't exist on node 1", true);
         }
         
         // getting OS interface
@@ -162,8 +161,18 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
         for ( int cycle = 0; cycle < MAX_CYCLES; cycle++ ) {
         
             // getting actual temperature
-            Thermometer_values thermoValues = null;
-            UUID tempRequestUid = thermo.async_get();
+            short peripheralIQHome = 0x20;
+            short cmdIdTemp = 0x10;
+            short cmdIdHum = 0x11;
+            short[] data = new short[]{};
+            
+            Short[] receivedDataTemp = null;
+            Short[] receivedDataHum = null;
+            
+            UUID tempRequestUid = custom.async_send(peripheralIQHome, cmdIdTemp, data);
+            Thread.sleep(500);
+            UUID humRequestUid = custom.async_send(peripheralIQHome, cmdIdHum, data);
+            Thread.sleep(500);
 
             // maximal number of attempts of getting a result
             final int RETRIES = 3;
@@ -187,11 +196,13 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                     // mqtt web confirmation task
                     if(webRequestReceived) {
                         webRequestReceived = false;
-                        try {
-                            mqttCommunicator.publish(MQTTTopics.ACTUATORS_LEDS_LP, 2, webResponseToBeSent.getBytes());
-                        } catch (MqttException ex) {
-                            System.err.println("Error while publishing sync dpa message.");
-                        }
+                        /*
+                            try {
+                                mqttCommunicator.publish(MQTTTopics.ACTUATORS_LEDS_LP, 2, webResponseToBeSent.getBytes());
+                            } catch (MqttException ex) {
+                                System.err.println("Error while publishing sync dpa message.");
+                            }
+                        */
                     }
                     
                     // periodic task ever 30s
@@ -202,20 +213,22 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 }
                 
                  // get request call state
-                CallRequestProcessingState procState = thermo.getCallRequestProcessingState(tempRequestUid);
-
+                CallRequestProcessingState procStateTemp = custom.getCallRequestProcessingState(tempRequestUid);
+                CallRequestProcessingState procStateHum = custom.getCallRequestProcessingState(humRequestUid);
+                
                 // have result already
-                if (procState == CallRequestProcessingState.RESULT_ARRIVED) {
-                    thermoValues = thermo.getCallResultImmediately(tempRequestUid, Thermometer_values.class);
+                if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED && procStateHum == CallRequestProcessingState.RESULT_ARRIVED ) {
+                    receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, Short[].class);
+                    receivedDataHum = custom.getCallResultImmediately(humRequestUid, Short[].class);
                     break;
                 }
 
                 // if any error occured
-                if (procState == CallRequestProcessingState.ERROR) {
+                if (procStateTemp == CallRequestProcessingState.ERROR  ) {
 
                     // general call error
-                    CallRequestProcessingError error = thermo.getCallRequestProcessingErrorOfLastCall();
-                    printMessageAndExit("Getting temperature failed: " + error.getErrorType(), false);
+                    CallRequestProcessingError error = custom.getCallRequestProcessingError(tempRequestUid);
+                    printMessageAndExit("Getting custom temperature failed: " + error.getErrorType(), false);
 
                     // specific call error
                     //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
@@ -223,32 +236,69 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                     //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
                     break;
                 } else {
-                    System.out.println("Getting temperature hasn't been processed yet: " + procState);
+                    System.out.println("Getting custom temperature hasn't been processed yet: " + procStateTemp);
+                }
+                
+                // if any error occured
+                if (procStateHum == CallRequestProcessingState.ERROR  ) {
+
+                    // general call error
+                    CallRequestProcessingError error = custom.getCallRequestProcessingError(humRequestUid);
+                    printMessageAndExit("Getting custom humidity failed: " + error.getErrorType(), false);
+
+                    // specific call error
+                    //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
+                    //DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                    //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
+                    break;
+                } else {
+                    System.out.println("Getting custom humidity hasn't been processed yet: " + procStateHum);
                 }
             }
 
-            if (thermoValues != null) {
+            if (receivedDataTemp != null && receivedDataHum != null) {
                 
                 pid++;
                 
-                // printing results        
-                System.out.println("Temperature on the node " + node1.getId() + ": "
-                        + thermoValues.getValue() + "." + thermoValues.getFractialValue() + " *C"
-                );
+                System.out.print("Received temperature from custom on the node " + node1.getId() + ": ");
+                for (Short readResultLoop : receivedDataTemp) {
+                    System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                }
+                System.out.println();
+                
+                float temperature = (receivedDataTemp[1] << 8) + receivedDataTemp[0];
+                temperature = temperature / 16;
+                
+                System.out.print("Received humidity from custom on the node " + node1.getId() + ": ");
+                for (Short readResultLoop : receivedDataHum) {
+                    System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                }
+                System.out.println();
+                
+                float humidity = (receivedDataHum[1] << 8) + receivedDataHum[0];
+                humidity = humidity / 16;
                 
                 // getting additional info of the last call
-                DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
+                //DPA_AdditionalInfo dpaAddInfo = custom.getDPA_AdditionalInfoOfLastCall();
+                
+                DPA_AdditionalInfo dpaAddInfoTemp = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(tempRequestUid);
+                DPA_AdditionalInfo dpaAddInfoHum = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(humRequestUid);
                 
                 //String msqMqtt = thermoValues.toPrettyFormattedString();
                 //Float temperature = Float.parseFloat(thermoValues.getValue() + "." + thermoValues.getFractialValue());
                 
                 // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                String temperatureToBeSent =
-			  "{\"e\":[{\"n\":\"temperature\"," + "\"u\":\"Cel\"," + "\"v\":" + thermoValues.getValue() + "." + thermoValues.getFractialValue() + "}],"
-                        + "\"iqrf\":[{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + "," 
-                        + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.THERMOMETER + "," + "\"pcmd\":" + "\"" + Thermometer.MethodID.GET.name().toLowerCase() + "\"," 
-                        + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
-                        + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                String iqhomeValuesToBeSent =
+			  "{\"e\":["
+                        + "{\"n\":\"temperature\"," + "\"u\":\"Cel\"," + "\"v\":" + temperature + "},"
+                        + "{\"n\":\"humidity\"," + "\"u\":\"%RH\"," + "\"v\":" + humidity + "}"
+                        + "],"
+                        + "\"iqrf\":["
+                        + "{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + "," 
+                        + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\"," 
+                        + "\"hwpid\":" + dpaAddInfoHum.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoHum.getResponseCode().name().toLowerCase() + "\"," 
+                        + "\"dpavalue\":" + dpaAddInfoHum.getDPA_Value() + "}"
+                        + "],"
                         + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
                         + "}";
                 
@@ -257,7 +307,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                         
                 // send data to mqtt
                 try {
-                    mqttCommunicator.publish(MQTTTopics.SENSORS_THERMOMETERS_LP, 2, temperatureToBeSent.getBytes());
+                    mqttCommunicator.publish(MQTTTopics.LP_SENSORS_IQHOME, 2, iqhomeValuesToBeSent.getBytes());
                 } catch (MqttException ex) {
                     System.err.println("Error while publishing sync dpa message.");
                 }                
@@ -302,6 +352,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
         }
         
         // there is a need to select topic
+        /*
         if (MQTTTopics.ACTUATORS_LEDS_LP.equals(topic)) {
         
             // TODO: check nodeID and add selection
@@ -344,6 +395,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 }
             }
         }
+        */        
         
         return null;
     }
