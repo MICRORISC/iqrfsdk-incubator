@@ -23,7 +23,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
-import com.microrisc.opengateway.core.tests.OpenGatewayTest;
 import java.sql.Timestamp;
 
 /**
@@ -190,9 +189,13 @@ public class MQTTCommunicator implements MqttCallback {
         
         try {
             client.connect(conOpt);
+            subscribe(MQTTTopics.STD_ACTUATORS_AUSTYN, 2);
+            subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
+            
         } catch (MqttException ex) {
             log("Reconnecting to " + brokerUrl + " with client ID " + client.getClientId() + "failed!" + ex.getMessage());
         }
+        
         log("Connected");
     }
 

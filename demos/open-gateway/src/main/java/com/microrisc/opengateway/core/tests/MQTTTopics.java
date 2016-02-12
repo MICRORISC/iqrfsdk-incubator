@@ -31,6 +31,8 @@ public class MQTTTopics {
     public static final String STD_ACTUATORS_AUSTYN = CLIENT_ID + "/std/actuators/austyn";
     public static final String STD_ACTUATORS_DEVTECH = CLIENT_ID + "/std/actuators/devtech";
     
+    public static final String STD_STATUS_DEVTECH = CLIENT_ID + "/std/status/devtech";
+    
     public static final String ASYNCHRONOUS_RESPONSES_STD = CLIENT_ID + "/std/asynchronous/responses";
     public static final String ASYNCHRONOUS_RESPONSES_LP = CLIENT_ID + "/lp/asynchronous/responses";
 }

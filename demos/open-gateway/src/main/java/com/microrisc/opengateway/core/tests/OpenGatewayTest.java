@@ -89,6 +89,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     
     public static int pidProtronix = 0;
     public static int pidAustyn = 0;
+    public static int pidDevtech = 0;
     public static int pidAsync = 0;
     
     // prints out specified message, destroys the Simply and exits
@@ -212,8 +213,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         }
         
         // getting UART interface - protronix
-        UART uart = node1.getDeviceObject(UART.class);
-        if ( uart == null ) {
+        UART uartP = node1.getDeviceObject(UART.class);
+        if ( uartP == null ) {
             printMessageAndExit("UART doesn't exist on node 1", true);
         }
         
@@ -223,15 +224,22 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             printMessageAndExit("Custom doesn't exist on node 2", true);
         }
         
+        // getting UART interface - devtech
+        UART uartD = node3.getDeviceObject(UART.class);
+        if ( uartD == null ) {
+            printMessageAndExit("UART doesn't exist on node 3", true);
+        }
+        
         // getting results
         // set up maximal number of cycles according to your needs - only testing
         final int MAX_CYCLES = 5000;        
         for ( int cycle = 0; cycle < MAX_CYCLES; cycle++ ) {
         
             // after 100ms reading
-            int timeout = 0x0A;
-            short[] data = { 0x47, 0x44, 0x03 };
-            short[] receivedUARTData = null;
+            int timeoutP = 0x0A;
+            short[] dataP = { 0x47, 0x44, 0x03 };
+            short[] receivedUARTPData = null;
+            
             Short[] receivedDataTemp = null;
             
             // getting austyn temperature
@@ -239,13 +247,23 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             short cmdIdTemp = 0x01;
             short[] dataTemp = new short[]{};
             
+            // after 2390ms reading
+            int timeoutD = 0xEF;
+            short[] dataD = { 0x65, 0xFD };
+            short[] receivedUARTDData = null;
+            
             // write UART peripheral
-            UUID uartRequestUid = uart.async_writeAndRead(timeout, data);
-            Thread.sleep(500);
+            Thread.sleep(100);
+            UUID uartPRequestUid = uartP.async_writeAndRead(timeoutP, dataP);
             
             // send Custom 
+            Thread.sleep(100);
             UUID tempRequestUid = custom.async_send(peripheralAustyn, cmdIdTemp, dataTemp);
-            Thread.sleep(500);
+            
+            // write UART peripheral
+            uartD.setDefaultWaitingTimeout( 5000 );
+            Thread.sleep(100);
+            UUID uartDRequestUid = uartD.async_writeAndRead(timeoutD, dataD);
             
             // maximal number of attempts of getting a result
             final int RETRIES = 3;
@@ -287,25 +305,31 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 }
                 
                  // get request call state
-                CallRequestProcessingState procState = uart.getCallRequestProcessingState(uartRequestUid);
+                CallRequestProcessingState procStateP = uartP.getCallRequestProcessingState(uartPRequestUid);
                 CallRequestProcessingState procStateTemp = custom.getCallRequestProcessingState(tempRequestUid);
+                CallRequestProcessingState procStateD = uartD.getCallRequestProcessingState(uartDRequestUid);
                 
-                // have result already
-                if (procState == CallRequestProcessingState.RESULT_ARRIVED) {
-                    receivedUARTData = uart.getCallResultImmediately(uartRequestUid, short[].class);
+                // have result already - protronix
+                if (procStateP == CallRequestProcessingState.RESULT_ARRIVED) {
+                    receivedUARTPData = uartP.getCallResultImmediately(uartPRequestUid, short[].class);
                 }
                 
-                // have result already
+                // have result already - austyn
                 if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED ) {
                     receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, Short[].class);
                 }
+                
+                // have result already - devtech
+                if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
+                    receivedUARTDData = uartD.getCallResultImmediately(uartDRequestUid, short[].class);
+                }
 
                 // if any error occured
-                if (procState == CallRequestProcessingState.ERROR) {
+                if (procStateP == CallRequestProcessingState.ERROR) {
 
                     // general call error
-                    CallRequestProcessingError error = uart.getCallRequestProcessingError(uartRequestUid);
-                    printMessageAndExit("Getting UART data failed: " + error.getErrorType(), false);
+                    CallRequestProcessingError error = uartP.getCallRequestProcessingError(uartPRequestUid);
+                    printMessageAndExit("Getting UART data failed on node1: " + error.getErrorType(), false);
 
                     // specific call error
                     //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
@@ -320,7 +344,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
                     // general call error
                     CallRequestProcessingError error = custom.getCallRequestProcessingError(tempRequestUid);
-                    printMessageAndExit("Getting Custom data failed: " + error.getErrorType(), false);
+                    printMessageAndExit("Getting Custom data failed on node2: " + error.getErrorType(), false);
 
                     // specific call error
                     //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
@@ -330,32 +354,44 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     //System.out.println("Getting Custom data hasn't been processed yet: " + procState);
                 }
                 
+                // if any error occured
+                if (procStateD == CallRequestProcessingState.ERROR) {
+
+                    // general call error
+                    CallRequestProcessingError error = uartD.getCallRequestProcessingError(uartDRequestUid);
+                    printMessageAndExit("Getting UART data failed on node3: " + error.getErrorType(), false);
+
+                    // specific call error
+                    //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
+                    //DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                    //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
+                } else {
+                    //System.out.println("Getting UART data hasn't been processed yet: " + procState);
+                }
+                
                 break;
             }
 
-            if (receivedUARTData != null) {
+            if (receivedUARTPData != null) {
                 
                 pidProtronix++;
                         
                 System.out.print("Received data from UART on the node " + node1.getId() + ": ");
-                for (Short readResultLoop : receivedUARTData) {
+                for (Short readResultLoop : receivedUARTPData) {
                     System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
                 }
                 System.out.println();
                 
-                float temperature = (receivedUARTData[4] << 8) + receivedUARTData[5];
+                float temperature = (receivedUARTPData[4] << 8) + receivedUARTPData[5];
                 temperature = temperature / 10;
                 
-                float humidity = (receivedUARTData[2] << 8) + receivedUARTData[3];
+                float humidity = (receivedUARTPData[2] << 8) + receivedUARTPData[3];
                 humidity = humidity / 10;
                 
-                int co2 = (receivedUARTData[0] << 8) + receivedUARTData[1];
+                int co2 = (receivedUARTPData[0] << 8) + receivedUARTPData[1];
                 
                 // getting additional info of the last call
-                DPA_AdditionalInfo dpaAddInfo = uart.getDPA_AdditionalInfoOfLastCall();
-                
-                //String msqMqtt = thermoValues.toPrettyFormattedString();
-                //Float temperature = Float.parseFloat(thermoValues.getValue() + "." + thermoValues.getFractialValue());
+                DPA_AdditionalInfo dpaAddInfo = uartP.getDPA_AdditionalInfoOfLastCall();
                 
                 // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                 String protronixValuesToBeSent =
@@ -396,9 +432,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 }
                 System.out.println();
          
-                byte tenths = (byte)(receivedDataTemp[0] & 0x0F);
-                short ones = (short)((short)((receivedDataTemp[1] & 0x07) << 4) + (short)(receivedDataTemp[0] >> 4));
-                Float temperature = Float.parseFloat(ones + "." + tenths);
+                short rawSixteenth = (short)(receivedDataTemp[0] | (receivedDataTemp[1] << 8));
+                float temperature = rawSixteenth / 16.0f;
                 
                 // getting additional info of the last call
                 //DPA_AdditionalInfo dpaAddInfo = uart.getDPA_AdditionalInfoOfLastCall();
@@ -433,6 +468,66 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             } else {
                 System.out.println("Result has not arrived.");
             }
+            
+            
+            if (receivedUARTDData != null) {
+                
+                pidDevtech++;
+                        
+                System.out.print("Received data from UART on the node " + node3.getId() + ": ");
+                for (Short readResultLoop : receivedUARTDData) {
+                    System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                }
+                System.out.println();
+                
+                float supplyVoltage = (receivedUARTDData[0] * 256 + receivedUARTDData[1]) / 100;
+                float frequency = (receivedUARTDData[2] * 256 + receivedUARTDData[3]) / 100;
+                float activePower = (receivedUARTDData[4] * 256 + receivedUARTDData[5]) / 100;
+                float supplyCurrent = (receivedUARTDData[6] * 256 + receivedUARTDData[7]) / 100;
+                float powerFactor = (receivedUARTDData[8] * 256 + receivedUARTDData[9]) / 100;
+                float activeEnergy =  (receivedUARTDData[10] * 65536 + receivedUARTDData[11] * 256 + receivedUARTDData[12]) / 100;
+                float deviceBurningHour = (receivedUARTDData[13] * 256 + receivedUARTDData[14]) / 100;
+                float ledBurningHour = (receivedUARTDData[15] * 256 + receivedUARTDData[16]) / 100;
+                float dimming = receivedUARTDData[17];
+                
+                // getting additional info of the last call
+                DPA_AdditionalInfo dpaAddInfo = uartD.getDPA_AdditionalInfoOfLastCall();
+                
+                // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                String devtechValuesToBeSent =
+			  "{\"e\":["
+                        + "{\"n\":\"supply voltage\"," + "\"u\":\"V\"," + "\"v\":" + supplyVoltage + "},"
+                        + "{\"n\":\"frequency\"," + "\"u\":\"Hz\"," + "\"v\":" + frequency + "},"
+                        + "{\"n\":\"active power\"," + "\"u\":\"W\"," + "\"v\":" + activePower + "},"
+                        + "{\"n\":\"supply current\"," + "\"u\":\"A\"," + "\"v\":" + supplyCurrent + "},"
+                        + "{\"n\":\"power factor\"," + "\"u\":\"cos\"," + "\"v\":" + powerFactor + "},"
+                        + "{\"n\":\"active energy\"," + "\"u\":\"J\"," + "\"v\":" + supplyCurrent + "},"
+                        + "{\"n\":\"device burning hour\"," + "\"u\":\"hours\"," + "\"v\":" + deviceBurningHour + "},"
+                        + "{\"n\":\"led burning hour\"," + "\"u\":\"hours\"," + "\"v\":" + ledBurningHour + "},"
+                        + "{\"n\":\"dimming\"," + "\"u\":\"%\"," + "\"v\":" + dimming + "},"
+                        + "],"
+                        + "\"iqrf\":["
+                        + "{\"pid\":" + pidDevtech + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + "," 
+                        + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.UART + "," + "\"pcmd\":" + "\"" + UART.MethodID.WRITE_AND_READ.name().toLowerCase() + "\"," 
+                        + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
+                        + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
+                        + "],"
+                        + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode3.getPrettyFormatedModuleId() + "\""
+                        + "}";
+                
+                // try to get JsonObject using minimal-json
+                //JsonObject jsonObject = Json.parse(temperatureToBeSent).asObject();
+                        
+                // send data to mqtt
+                try {
+                    mqttCommunicator.publish(MQTTTopics.STD_STATUS_DEVTECH, 2, devtechValuesToBeSent.getBytes());
+                } catch (MqttException ex) {
+                    System.err.println("Error while publishing sync dpa message.");
+                }                
+            } else {
+                System.out.println("Result has not arrived.");
+            }
+            
         }
         
         // after end of work with asynchronous messages, unrergister the listener
@@ -762,6 +857,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         //DPA_AdditionalInfo additionalData = (DPA_AdditionalInfo)message.getAdditionalData();
         
         // sending control message back to network based on received message
-        asyncRequestReceived = true;
+        //asyncRequestReceived = true;
     }
 }
