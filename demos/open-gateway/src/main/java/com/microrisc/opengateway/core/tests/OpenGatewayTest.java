@@ -525,6 +525,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
+                    
+                    receivedUARTPData = null;
                 } 
             } else {
                 System.out.println("Protronix result has not arrived.");
@@ -604,6 +606,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
+                    
+                    receivedDataTemp = null;
                 }    
             } else {
                 System.out.println("Austyn result has not arrived.");
@@ -665,6 +669,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
+                    
+                    receivedUARTDData = null;
                 }
             } else {
                 System.out.println("Devtech result has not arrived.");
@@ -709,6 +715,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
+                    
+                    receivedCustomDatmoluxData = null;
                 }
             } else {
                 System.out.println("Datmolux result has not arrived.");
