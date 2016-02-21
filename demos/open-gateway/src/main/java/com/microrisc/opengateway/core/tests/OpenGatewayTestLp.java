@@ -27,19 +27,18 @@ import com.microrisc.simply.SimplyException;
 import com.microrisc.simply.asynchrony.AsynchronousMessagesListener;
 import com.microrisc.simply.asynchrony.AsynchronousMessagingManager;
 import com.microrisc.simply.errors.CallRequestProcessingError;
+import com.microrisc.simply.iqrf.dpa.DPA_ResponseCode;
 import com.microrisc.simply.iqrf.dpa.DPA_Simply;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessage;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessageProperties;
 import com.microrisc.simply.iqrf.dpa.protocol.DPA_ProtocolProperties;
 import com.microrisc.simply.iqrf.dpa.v22x.DPA_SimplyFactory;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.Custom;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.GeneralLED;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.LEDR;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.OS;
 import com.microrisc.simply.iqrf.dpa.v22x.types.DPA_AdditionalInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
-import com.microrisc.simply.iqrf.types.VoidType;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.UUID;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -54,9 +53,20 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
     // references for DPA
     public static DPA_Simply simply = null;
     public static Network network1 = null;
+    
     public static Node node1 = null;
-    public static OsInfo osInfo = null;
+    public static Node node2 = null;
+    public static Node node3 = null;
+    
+    public static OsInfo osInfoNode1 = null;
+    public static OsInfo osInfoNode2 = null;
+    public static OsInfo osInfoNode3 = null;
+    
     public static boolean asyncRequestReceived = false;
+    public static String asyncNodeId = null;
+    public static int asyncPeripheralNumber = 0;
+    public static short[] asyncMainData = null;
+    public static DPA_AdditionalInfo asyncAdditionalData = null;
     
     // references for MQTT
     public static String protocol = "tcp://";
@@ -76,7 +86,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
     public static boolean webRequestReceived = false;
     
     public static int pid = 0;
-    public static int pidAsync = 0;
+    public static int pidAsyncCitiq = 0;
     
     // prints out specified message, destroys the Simply and exits
     private static void printMessageAndExit(String message, boolean exit) {
@@ -104,7 +114,6 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
         
         String url = protocol + broker + ":" + port;
         mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password);
-        //mqttCommunicator.subscribe(MQTTTopics.ACTUATORS_LEDS_LP, 2);
         
         // ASYNC REQUESTS FROM DPA
         
@@ -131,28 +140,76 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
             printMessageAndExit("Node 1 doesn't exist", true);
         }
         
-        // getting custom interface
-        Custom custom = node1.getDeviceObject(Custom.class);
-        if ( custom == null ) {
-            printMessageAndExit("Custom doesn't exist on node 1", true);
+        // getting node 2
+        node2 = network1.getNode("2");
+        if (node2 == null) {
+            printMessageAndExit("Node 2 doesn't exist", true);
+        }
+
+        // getting node 3
+        node3 = network1.getNode("3");
+        if (node3 == null) {
+            printMessageAndExit("Node 3 doesn't exist", true);
         }
         
         // getting OS interface
-        OS os = node1.getDeviceObject(OS.class);
-        if ( os == null ) {
+        OS osn1 = node1.getDeviceObject(OS.class);
+        if ( osn1 == null ) {
             printMessageAndExit("OS doesn't exist on node 1", false);
         }
          
         // get info about module
-        osInfo = os.read();
-        if (osInfo == null) {
-            CallRequestProcessingState procState = os.getCallRequestProcessingStateOfLastCall();
+        osInfoNode1 = osn1.read();
+        if (osInfoNode1 == null) {
+            CallRequestProcessingState procState = osn1.getCallRequestProcessingStateOfLastCall();
             if ( procState == ERROR ) {
-                CallRequestProcessingError error = os.getCallRequestProcessingErrorOfLastCall();
-                printMessageAndExit("Getting OS info failed: " + error, false);
+                CallRequestProcessingError error = osn1.getCallRequestProcessingErrorOfLastCall();
+                printMessageAndExit("Getting OS info failed on node 1: " + error, false);
             } else {
-                printMessageAndExit("Getting OS info hasn't been processed yet: " + procState, false);
+                printMessageAndExit("Getting OS info hasn't been processed yet on node 1: " + procState, false);
             }
+        }
+        
+        // getting OS interface
+        OS osn2 = node2.getDeviceObject(OS.class);
+        if ( osn2 == null ) {
+            printMessageAndExit("OS doesn't exist on node 2", false);
+        }
+         
+        // get info about module
+        osInfoNode2 = osn2.read();
+        if (osInfoNode2 == null) {
+            CallRequestProcessingState procState = osn2.getCallRequestProcessingStateOfLastCall();
+            if ( procState == ERROR ) {
+                CallRequestProcessingError error = osn2.getCallRequestProcessingErrorOfLastCall();
+                printMessageAndExit("Getting OS info failed on node 2: " + error, false);
+            } else {
+                printMessageAndExit("Getting OS info hasn't been processed yet on node 2: " + procState, false);
+            }
+        }
+        
+        // getting OS interface
+        OS osn3 = node3.getDeviceObject(OS.class);
+        if ( osn3 == null ) {
+            printMessageAndExit("OS doesn't exist on node 3", false);
+        }
+         
+        // get info about module
+        osInfoNode3 = osn3.read();
+        if (osInfoNode3 == null) {
+            CallRequestProcessingState procState = osn3.getCallRequestProcessingStateOfLastCall();
+            if ( procState == ERROR ) {
+                CallRequestProcessingError error = osn3.getCallRequestProcessingErrorOfLastCall();
+                printMessageAndExit("Getting OS info failed on node 3: " + error, false);
+            } else {
+                printMessageAndExit("Getting OS info hasn't been processed yet on node 3: " + procState, false);
+            }
+        }
+        
+        // getting custom interface
+        Custom custom = node1.getDeviceObject(Custom.class);
+        if ( custom == null ) {
+            printMessageAndExit("Custom doesn't exist on node 1", true);
         }
         
         // getting results
@@ -205,8 +262,8 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                         */
                     }
                     
-                    // periodic task ever 30s
-                    if(checkResponse == 3000) {
+                    // periodic task ever 60s
+                    if(checkResponse == 6000) {
                         checkResponse = 0;
                         break;
                     }
@@ -215,28 +272,30 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                  // get request call state
                 CallRequestProcessingState procStateTemp = custom.getCallRequestProcessingState(tempRequestUid);
                 CallRequestProcessingState procStateHum = custom.getCallRequestProcessingState(humRequestUid);
-                
-                // have result already
-                if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED && procStateHum == CallRequestProcessingState.RESULT_ARRIVED ) {
-                    receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, Short[].class);
-                    receivedDataHum = custom.getCallResultImmediately(humRequestUid, Short[].class);
-                    break;
-                }
 
                 // if any error occured
                 if (procStateTemp == CallRequestProcessingState.ERROR  ) {
 
                     // general call error
                     CallRequestProcessingError error = custom.getCallRequestProcessingError(tempRequestUid);
-                    printMessageAndExit("Getting custom temperature failed: " + error.getErrorType(), false);
-
-                    // specific call error
-                    //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
-                    //DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                    //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
-                    break;
+                    printMessageAndExit("Getting custom temperature failed on node 1: " + error.getErrorType(), false);
+                    
                 } else {
-                    System.out.println("Getting custom temperature hasn't been processed yet: " + procStateTemp);
+                    // have result iqhome
+                    if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED) {
+                        receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, Short[].class);
+                        
+                        if (receivedDataTemp != null && receivedDataTemp.length == 0) {
+
+                            // specific call error
+                            DPA_AdditionalInfo dpaAddInfo = custom.getDPA_AdditionalInfoOfLastCall();
+                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                            printMessageAndExit("Getting custom temperature failed on node 1, DPA error: " + dpaResponseCode, false);
+                        } 
+                        else {
+                            System.out.println("Getting custom temperature hasn't been processed yet on node 1: " + procStateTemp);
+                        }
+                    }
                 }
                 
                 // if any error occured
@@ -244,75 +303,88 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
 
                     // general call error
                     CallRequestProcessingError error = custom.getCallRequestProcessingError(humRequestUid);
-                    printMessageAndExit("Getting custom humidity failed: " + error.getErrorType(), false);
+                    printMessageAndExit("Getting custom humidity failed on node 1: " + error.getErrorType(), false);
 
-                    // specific call error
-                    //DPA_AdditionalInfo dpaAddInfo = thermo.getDPA_AdditionalInfoOfLastCall();
-                    //DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                    //printMessageAndExit("Getting temperature failed: " + error + ", DPA error: " + dpaResponseCode);
-                    break;
                 } else {
-                    System.out.println("Getting custom humidity hasn't been processed yet: " + procStateHum);
+                    
+                    if (procStateHum == CallRequestProcessingState.RESULT_ARRIVED ) {
+                        receivedDataHum = custom.getCallResultImmediately(humRequestUid, Short[].class);
+                        
+                        if (receivedDataTemp != null && receivedDataTemp.length == 0) {
+
+                            // specific call error
+                            DPA_AdditionalInfo dpaAddInfo = custom.getDPA_AdditionalInfoOfLastCall();
+                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                            printMessageAndExit("Getting custom humidity failed on node 1, DPA error: " + dpaResponseCode, false);    
+                        } 
+                        else {
+                            System.out.println("Getting custom humidity hasn't been processed yet on node 1: " + procStateHum);
+                        }
+                    }
                 }
+                break;
             }
 
             if (receivedDataTemp != null && receivedDataHum != null) {
                 
-                pid++;
-                
-                System.out.print("Received temperature from custom on the node " + node1.getId() + ": ");
-                for (Short readResultLoop : receivedDataTemp) {
-                    System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                if (receivedDataTemp.length == 0 && receivedDataHum.length == 0) {
+                    System.out.print("No received data from custom on the node 1 " + node1.getId());
+                } else {
+                    
+                    pid++;
+
+                    System.out.print("Received temperature from custom on the node " + node1.getId() + ": ");
+                    for (Short readResultLoop : receivedDataTemp) {
+                        System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                    }
+                    System.out.println();
+
+                    float temperature = (receivedDataTemp[1] << 8) + receivedDataTemp[0];
+                    temperature = temperature / 16;
+
+                    System.out.print("Received humidity from custom on the node " + node1.getId() + ": ");
+                    for (Short readResultLoop : receivedDataHum) {
+                        System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
+                    }
+                    System.out.println();
+
+                    float humidity = (receivedDataHum[1] << 8) + receivedDataHum[0];
+                    humidity = Math.round(humidity / 16);
+
+                    // getting additional info of the last call
+                    DPA_AdditionalInfo dpaAddInfo = custom.getDPA_AdditionalInfoOfLastCall();
+                    //DPA_AdditionalInfo dpaAddInfoTemp = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(tempRequestUid);
+                    //DPA_AdditionalInfo dpaAddInfoHum = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(humRequestUid);
+
+                    DecimalFormat df = new DecimalFormat("###.##");
+
+                    // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                    String iqhomeValuesToBeSent =
+                              "{\"e\":["
+                            + "{\"n\":\"temperature\"," + "\"u\":\"Cel\"," + "\"v\":" + df.format(temperature) + "},"
+                            + "{\"n\":\"humidity\"," + "\"u\":\"%RH\"," + "\"v\":" + humidity + "}"
+                            + "],"
+                            + "\"iqrf\":["
+                            + "{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + "," 
+                            + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\"," 
+                            + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
+                            + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
+                            + "],"
+                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode1.getPrettyFormatedModuleId() + "\""
+                            + "}";
+
+                    // send data to mqtt
+                    try {
+                        mqttCommunicator.publish(MQTTTopics.LP_SENSORS_IQHOME, 2, iqhomeValuesToBeSent.getBytes());
+                    } catch (MqttException ex) {
+                        System.err.println("Error while publishing sync dpa message.");
+                    }
+
+                    receivedDataTemp = null;
+                    receivedDataHum = null;
                 }
-                System.out.println();
-                
-                float temperature = (receivedDataTemp[1] << 8) + receivedDataTemp[0];
-                temperature = temperature / 16;
-                
-                System.out.print("Received humidity from custom on the node " + node1.getId() + ": ");
-                for (Short readResultLoop : receivedDataHum) {
-                    System.out.print(Integer.toHexString(readResultLoop).toUpperCase() + " ");
-                }
-                System.out.println();
-                
-                float humidity = (receivedDataHum[1] << 8) + receivedDataHum[0];
-                humidity = humidity / 16;
-                
-                // getting additional info of the last call
-                //DPA_AdditionalInfo dpaAddInfo = custom.getDPA_AdditionalInfoOfLastCall();
-                
-                DPA_AdditionalInfo dpaAddInfoTemp = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(tempRequestUid);
-                DPA_AdditionalInfo dpaAddInfoHum = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(humRequestUid);
-                
-                //String msqMqtt = thermoValues.toPrettyFormattedString();
-                //Float temperature = Float.parseFloat(thermoValues.getValue() + "." + thermoValues.getFractialValue());
-                
-                // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                String iqhomeValuesToBeSent =
-			  "{\"e\":["
-                        + "{\"n\":\"temperature\"," + "\"u\":\"Cel\"," + "\"v\":" + temperature + "},"
-                        + "{\"n\":\"humidity\"," + "\"u\":\"%RH\"," + "\"v\":" + humidity + "}"
-                        + "],"
-                        + "\"iqrf\":["
-                        + "{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + "," 
-                        + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\"," 
-                        + "\"hwpid\":" + dpaAddInfoHum.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoHum.getResponseCode().name().toLowerCase() + "\"," 
-                        + "\"dpavalue\":" + dpaAddInfoHum.getDPA_Value() + "}"
-                        + "],"
-                        + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
-                        + "}";
-                
-                // try to get JsonObject using minimal-json
-                //JsonObject jsonObject = Json.parse(temperatureToBeSent).asObject();
-                        
-                // send data to mqtt
-                try {
-                    mqttCommunicator.publish(MQTTTopics.LP_SENSORS_IQHOME, 2, iqhomeValuesToBeSent.getBytes());
-                } catch (MqttException ex) {
-                    System.err.println("Error while publishing sync dpa message.");
-                }                
             } else {
-                System.out.println("Result has not arrived.");
+                System.out.println("IQHome Result has not arrived.");
             }
         }
         
@@ -402,58 +474,71 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
     
     public static boolean sendDPAAsyncRequest() throws InterruptedException {
         
-        pidAsync++;
-        Thread.sleep(100);
-        
-        // getting LEDR interface
-        LEDR ledr = node1.getDeviceObject(LEDR.class);
-        if (ledr == null) {
-            printMessageAndExit("LEDR doesn't exist or is not enabled", false);
-            return false;
-        }
+        if(asyncNodeId != null && asyncMainData != null && asyncAdditionalData != null) {
 
-        // TODO: - do action based on published request - pulsing for now
-        VoidType setResult = ledr.pulse();
-        if (setResult == null) {
-            processNullResult(ledr, "Pulsing LEDR failed",
-                    "Pulsing LEDR hasn't been processed yet"
-            );
-            return false;
-        }
-        
-        // getting additional info of the last call
-        DPA_AdditionalInfo dpaAddInfo = ledr.getDPA_AdditionalInfoOfLastCall();
+            if(asyncMainData.length == 0) {
+                System.out.print("No received data from Asynchronny on the node " + asyncNodeId);
+            }
+            else {
+                if (asyncNodeId.equals("2")) {
 
-        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-        String asyncRequestToBeSent 
-                = "{\"e\":[{\"n\":\"ledr\"," + "\"sv\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\"}],"
-                + "\"iqrf\":[{\"pid\":" + pid + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + ","
-                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.LEDR + "," + "\"pcmd\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\","
-                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\"," 
-                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + osInfo.getPrettyFormatedModuleId() + "\""
-                + "}";
+                    pidAsyncCitiq++;
+                    String STATE = ""; 
 
-        // send data to mqtt
-        try {
-            mqttCommunicator.publish(MQTTTopics.ASYNCHRONOUS_RESPONSES_LP, 2, asyncRequestToBeSent.getBytes());
-        } catch (MqttException ex) {
-            System.err.println("Error while publishing sync dpa message.");
+                    if(asyncMainData[0] == 0)
+                        STATE = "free";
+                    else if (asyncMainData[0] == 1)
+                        STATE = "occupied";
+
+                    // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                    String asyncRequestToBeSent 
+                            = "{\"e\":[{\"n\":\"carplace\"," + "\"sv\":" + "\"" + STATE + "\"}],"
+                            + "\"iqrf\":[{\"pid\":" + pidAsyncCitiq + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
+                            + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                            + "\"hwpid\":" + asyncAdditionalData.getHwProfile() + "," + "\"rcode\":" + "\"" + asyncAdditionalData.getResponseCode().name().toLowerCase() + "\"," 
+                            + "\"dpavalue\":" + asyncAdditionalData.getDPA_Value() + "}],"
+                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
+                            + "}";
+
+                    // send data to mqtt
+                    try {
+                        mqttCommunicator.publish(MQTTTopics.LP_STATUS_CITIQ, 2, asyncRequestToBeSent.getBytes());
+                    } catch (MqttException ex) {
+                        System.err.println("Error while publishing sync dpa message from node 2.");
+                    }
+                }
+            
+                if(asyncNodeId.equals("3")) {
+
+                    pidAsyncCitiq++;
+                    String STATE = "";
+
+                    if(asyncMainData[0] == 0)
+                        STATE = "free";
+                    else if (asyncMainData[0] == 1)
+                        STATE = "occupied";
+
+                    // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                    String asyncRequestToBeSent 
+                            = "{\"e\":[{\"n\":\"carplace\"," + "\"sv\":" + "\"" + STATE + "\"}],"
+                            + "\"iqrf\":[{\"pid\":" + pidAsyncCitiq + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
+                            + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                            + "\"hwpid\":" + asyncAdditionalData.getHwProfile() + "," + "\"rcode\":" + "\"" + asyncAdditionalData.getResponseCode().name().toLowerCase() + "\"," 
+                            + "\"dpavalue\":" + asyncAdditionalData.getDPA_Value() + "}],"
+                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode3.getPrettyFormatedModuleId() + "\""
+                            + "}";
+
+                    // send data to mqtt
+                    try {
+                        mqttCommunicator.publish(MQTTTopics.LP_STATUS_CITIQ, 2, asyncRequestToBeSent.getBytes());
+                    } catch (MqttException ex) {
+                        System.err.println("Error while publishing sync dpa message from node 3.");
+                    }
+                }
+            }
         }
 
         return true;
-    }
-    
-    // processes NULL result
-    private static void processNullResult(GeneralLED led, String errorMsg, String notProcMsg) 
-    {
-        CallRequestProcessingState procState = led.getCallRequestProcessingStateOfLastCall();
-        if ( procState == CallRequestProcessingState.ERROR ) {
-            CallRequestProcessingError error = led.getCallRequestProcessingErrorOfLastCall();
-            printMessageAndExit(errorMsg + ": " + error, false);
-        } else {
-            printMessageAndExit(notProcMsg + ": " + procState, false);
-        }
     }
 
     @Override
@@ -461,10 +546,10 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
         
         System.out.println("New asynchronous message.");
         
-        //String nodeId = message.getMessageSource().getNodeId();
-        //int peripheralNumber = message.getMessageSource().getPeripheralNumber();
-        //short[] mainData = (short[])message.getMainData();        
-        //DPA_AdditionalInfo additionalData = (DPA_AdditionalInfo)message.getAdditionalData();
+        asyncNodeId = message.getMessageSource().getNodeId();
+        asyncPeripheralNumber = message.getMessageSource().getPeripheralNumber();
+        asyncMainData = (short[])message.getMainData();        
+        asyncAdditionalData = (DPA_AdditionalInfo)message.getAdditionalData();
         
         // sending control message back to network based on received message
         asyncRequestReceived = true;

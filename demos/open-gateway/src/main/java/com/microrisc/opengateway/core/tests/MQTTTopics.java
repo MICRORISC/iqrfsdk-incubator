@@ -26,10 +26,12 @@ public class MQTTTopics {
     
     public static final String STD_SENSORS_PROTRONIX = CLIENT_ID + "/std/sensors/protronix";
     public static final String STD_SENSORS_PROTRONIX_DPA_REQUESTS = CLIENT_ID + "/std/sensors/protronix/dpa/requests";
+    public static final String STD_SENSORS_PROTRONIX_DPA_CONFIRMATIONS = CLIENT_ID + "/std/sensors/protronix/dpa/confirmations";
     public static final String STD_SENSORS_PROTRONIX_DPA_RESPONSES = CLIENT_ID + "/std/sensors/protronix/dpa/responses";
     
     public static final String STD_SENSORS_AUSTYN = CLIENT_ID + "/std/sensors/austyn";
     public static final String STD_SENSORS_AUSTYN_DPA_REQUESTS = CLIENT_ID + "/std/sensors/austyn/dpa/requests";
+    public static final String STD_SENSORS_AUSTYN_DPA_CONFIRMATIONS = CLIENT_ID + "/std/sensors/austyn/dpa/confirmations";
     public static final String STD_SENSORS_AUSTYN_DPA_RESPONSES = CLIENT_ID + "/std/sensors/austyn/dpa/responses";
     
     public static final String LP_SENSORS_IQHOME = CLIENT_ID + "/lp/sensors/iqhome";
@@ -37,13 +39,26 @@ public class MQTTTopics {
     public static final String STD_ACTUATORS_AUSTYN = CLIENT_ID + "/std/actuators/austyn";
     public static final String STD_ACTUATORS_DEVTECH = CLIENT_ID + "/std/actuators/devtech";
     public static final String STD_ACTUATORS_DATMOLUX = CLIENT_ID + "/std/actuators/datmolux";
-    //public static final String STD_ACTUATORS_TECO = CLIENT_ID + "/std/actuators/teco";
+    public static final String STD_ACTUATORS_TECO = CLIENT_ID + "/std/actuators/teco";
     //public static final String LP_ACTUATORS_TECO = CLIENT_ID + "/lp/actuators/teco";
     
     public static final String STD_STATUS_DEVTECH = CLIENT_ID + "/std/status/devtech";
-    public static final String STD_STATUS_DATMOLUX = CLIENT_ID + "/std/status/datmolux";
-    //public static final String LP_STATUS_CITIQ = CLIENT_ID + "/lp/status/citiq";
+    public static final String STD_STATUS_DEVTECH_DPA_REQUESTS = CLIENT_ID + "/std/status/devtech/dpa/requests";
+    public static final String STD_STATUS_DEVTECH_DPA_CONFIRMATIONS = CLIENT_ID + "/std/status/devtech/dpa/confirmations";
+    public static final String STD_STATUS_DEVTECH_DPA_RESPONSES = CLIENT_ID + "/std/status/devtech/dpa/responses";
     
-    public static final String ASYNCHRONOUS_RESPONSES_STD = CLIENT_ID + "/std/asynchronous/responses";
-    public static final String ASYNCHRONOUS_RESPONSES_LP = CLIENT_ID + "/lp/asynchronous/responses";
+    public static final String STD_STATUS_DATMOLUX = CLIENT_ID + "/std/status/datmolux";
+    public static final String STD_STATUS_DATMOLUX_DPA_REQUESTS = CLIENT_ID + "/std/status/datmolux/dpa/requests";
+    public static final String STD_STATUS_DATMOLUX_DPA_CONFIRMATIONS = CLIENT_ID + "/std/status/datmolux/dpa/confirmations";
+    public static final String STD_STATUS_DATMOLUX_DPA_RESPONSES = CLIENT_ID + "/std/status/datmolux/dpa/responses";
+    public static final String LP_STATUS_CITIQ = CLIENT_ID + "/lp/status/citiq";
+    
+    public static final String STD_DPA_REQUESTS = CLIENT_ID + "/std/dpa/requests";
+    public static final String STD_DPA_CONFIRMATIONS = CLIENT_ID + "/std/dpa/confirmations";
+    public static final String STD_DPA_RESPONSES = CLIENT_ID + "/std/dpa/responses";
+    public static final String LP_DPA_REQUESTS = CLIENT_ID + "/lp/dpa/requests";
+    public static final String LP_DPA_CONFIRMATIONS = CLIENT_ID + "/lp/dpa/confirmations";
+    public static final String LP_DPA_RESPONSES = CLIENT_ID + "/lp/dpa/responses";
+    public static final String STD_DPA_ASYNCHRONOUS_RESPONSES = CLIENT_ID + "/std/dpa/asynchronous/responses";
+    public static final String LP_DPA_ASYNCHRONOUS_RESPONSES = CLIENT_ID + "/lp/dpa/asynchronous/responses";
 }
