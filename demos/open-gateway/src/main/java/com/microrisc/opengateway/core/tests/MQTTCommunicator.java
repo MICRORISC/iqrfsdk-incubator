@@ -200,6 +200,8 @@ public class MQTTCommunicator implements MqttCallback {
             } else if(netType.equals("LP")) {
                 subscribe(MQTTTopics.LP_SETTING_CITIQ, 2);
                 subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_AUSTYN, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_TECO, 2);
             }
         } catch (MqttException ex) {
             log("Reconnecting to " + brokerUrl + " with client ID " + client.getClientId() + "failed!" + ex.getMessage());

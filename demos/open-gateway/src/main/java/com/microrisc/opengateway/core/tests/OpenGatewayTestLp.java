@@ -273,8 +273,8 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
             short cmdIdHum = 0x11;
             short[] data = new short[]{};
             
-            Short[] receivedDataTemp = null;
-            Short[] receivedDataHum = null;
+            short[] receivedDataTemp = null;
+            short[] receivedDataHum = null;
             
             UUID tempRequestUid = custom.async_send(peripheralIQHome, cmdIdTemp, data);
             UUID humRequestUid = custom.async_send(peripheralIQHome, cmdIdHum, data);
@@ -332,7 +332,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 } else {
                     // have result iqhome
                     if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, Short[].class);
+                        receivedDataTemp = custom.getCallResultImmediately(tempRequestUid, short[].class);
                         
                         if (receivedDataTemp != null && receivedDataTemp.length == 0) {
 
@@ -356,7 +356,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 } else {
                     
                     if (procStateHum == CallRequestProcessingState.RESULT_ARRIVED ) {
-                        receivedDataHum = custom.getCallResultImmediately(humRequestUid, Short[].class);
+                        receivedDataHum = custom.getCallResultImmediately(humRequestUid, short[].class);
                         
                         if (receivedDataTemp != null && receivedDataTemp.length == 0) {
 
@@ -490,7 +490,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                                 printMessageAndExit("Custom doesn't exist on node 2", true);
                             }
 
-                            Short[] result = customCitiq.send((short)0x20, (short)0x01, new short[]{});
+                            short[] result = customCitiq.send((short)0x20, (short)0x01, new short[]{});
                             if (result == null) {
                                 CallRequestProcessingError error = customCitiq.getCallRequestProcessingErrorOfLastCall();
                                 printMessageAndExit("Setting Custom failed on node 2: " + error, false);
@@ -522,7 +522,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                                 printMessageAndExit("Custom doesn't exist on node 3", true);
                             }
 
-                            Short[] result = customCitiq.send((short)0x20, (short)0x01, new short[]{});
+                            short[] result = customCitiq.send((short)0x20, (short)0x01, new short[]{});
                             if (result == null) {
                                 CallRequestProcessingError error = customCitiq.getCallRequestProcessingErrorOfLastCall();
                                 printMessageAndExit("Setting Custom failed on node 3: " + error, false);
@@ -555,6 +555,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 // TODO: check nodeID and add selection
                 if (valueDPA.equalsIgnoreCase("RESP")) {
                     // TODO: checking that rcode if correct - request for STD network has been processed correctly
+                    // for now there are not sent if there is error
                 }
             }
         }

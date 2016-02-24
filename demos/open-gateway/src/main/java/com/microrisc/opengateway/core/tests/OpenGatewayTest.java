@@ -110,7 +110,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     private static short cmdIdDatmoUP = 0x03;
     private static short cmdIdDatmoPOWER = 0x06;
     private static short[] dataDatmo = new short[]{};
-    private static Short[] receivedCustomDatmoluxData = null;
+    private static short[] receivedCustomDatmoluxData = null;
 
     // prints out specified message, destroys the Simply and exits
     private static void printMessageAndExit(String message, boolean exit) {
@@ -457,7 +457,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             short peripheralAustyn = 0x20;
             short cmdIdTemp = 0x01;
             short[] dataTemp = new short[]{};
-            Short[] receivedDataTemp = null;
+            short[] receivedDataTemp = null;
             
             // after 2390ms reading
             int timeoutD = 0xEF;
@@ -563,7 +563,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 } else {
                     // have result already - austyn
                     if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedDataTemp = customAustyn.getCallResultImmediately(tempRequestUid, Short[].class);
+                        receivedDataTemp = customAustyn.getCallResultImmediately(tempRequestUid, short[].class);
                         
                         if(receivedDataTemp != null && receivedDataTemp.length == 0) {
                             // specific call error
@@ -608,7 +608,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 } else {
                     // have result already - datmolux
                     if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedCustomDatmoluxData = customDatmolux.getCallResultImmediately(datmoPowerRequestUid, Short[].class);
+                        receivedCustomDatmoluxData = customDatmolux.getCallResultImmediately(datmoPowerRequestUid, short[].class);
                         
                         if (receivedCustomDatmoluxData != null && receivedCustomDatmoluxData.length == 0) {
                             // specific call error
@@ -1311,7 +1311,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        Short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
+                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
@@ -1349,7 +1349,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        Short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoOFF, dataDatmo);
+                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoOFF, dataDatmo);
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
@@ -1387,7 +1387,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        Short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoUP, dataDatmo);
+                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoUP, dataDatmo);
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
@@ -1425,7 +1425,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        Short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoDOWN, dataDatmo);
+                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoDOWN, dataDatmo);
                         
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
@@ -1477,7 +1477,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 5", true);
                         }
                         
-                        Short[] result = customTeco.send((short) 0x20, (short) 0x00, new short[]{});
+                        short[] result = customTeco.send((short) 0x20, (short) 0x00, new short[]{});
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
@@ -1515,7 +1515,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 5", true);
                         }                      
                         
-                        Short[] result = customTeco.send((short) 0x20, (short) 0x01, new short[]{});
+                        short[] result = customTeco.send((short) 0x20, (short) 0x01, new short[]{});
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
