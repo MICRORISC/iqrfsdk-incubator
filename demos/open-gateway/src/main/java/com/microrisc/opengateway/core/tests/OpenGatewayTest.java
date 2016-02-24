@@ -32,9 +32,7 @@ import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessage;
 import com.microrisc.simply.iqrf.dpa.asynchrony.DPA_AsynchronousMessageProperties;
 import com.microrisc.simply.iqrf.dpa.protocol.DPA_ProtocolProperties;
 import com.microrisc.simply.iqrf.dpa.v22x.DPA_SimplyFactory;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.GeneralLED;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.IO;
-import com.microrisc.simply.iqrf.dpa.v22x.devices.LEDR;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.OS;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.Custom;
 import com.microrisc.simply.iqrf.dpa.v22x.devices.UART;
@@ -46,7 +44,6 @@ import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
 import com.microrisc.simply.iqrf.types.VoidType;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.UUID;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
@@ -73,6 +70,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     public static OsInfo osInfoNode3 = null;
     public static OsInfo osInfoNode4 = null;
     public static OsInfo osInfoNode5 = null;
+    public static String moduleId = null;
 
     public static IO ioa = null;
     public static IO iodev = null;
@@ -137,21 +135,37 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
         // MQTT INIT
         String url = protocol + broker + ":" + port;
-        mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password);
+        mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password, "STD");
         mqttCommunicator.subscribe(MQTTTopics.STD_ACTUATORS_AUSTYN, 2);
         mqttCommunicator.subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
         mqttCommunicator.subscribe(MQTTTopics.STD_ACTUATORS_DATMOLUX, 2);
-        //mqttCommunicator.subscribe(MQTTTopics.STD_ACTUATORS_TECO, 2);
+        mqttCommunicator.subscribe(MQTTTopics.STD_ACTUATORS_TECO, 2);
 
         // ASYNC REQUESTS FROM DPA
-        OpenGatewayTest msgListener = new OpenGatewayTest();
+        final OpenGatewayTest msgListener = new OpenGatewayTest();
 
         // getting access to asynchronous messaging manager
-        AsynchronousMessagingManager<DPA_AsynchronousMessage, DPA_AsynchronousMessageProperties> asyncManager
+        final AsynchronousMessagingManager<DPA_AsynchronousMessage, DPA_AsynchronousMessageProperties> asyncManager
                 = simply.getAsynchronousMessagingManager();
 
         // register the listener of asynchronous messages
         asyncManager.registerAsyncMsgListener(msgListener);
+        
+        // APP EXIT
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+              @Override
+              public void run() {
+                 System.out.println("End via shutdown hook.");
+                 
+                  // after end of work with asynchronous messages, unrergister the listener
+                  asyncManager.unregisterAsyncMsgListener(msgListener);
+
+                  // end working with Simply
+                  simply.destroy();
+              }
+              
+        }));
 
         // SYNC REQUESTS TO DPA
         // getting network 1
@@ -183,14 +197,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         if (node4 == null) {
             printMessageAndExit("Node 4 doesn't exist", true);
         }
-
-/*        
+       
         // getting node 5 - teco
         node5 = network1.getNode("5");
         if (node5 == null) {
             printMessageAndExit("Node 5 doesn't exist", true);
         }
-*/
         
         // getting OS interface
         OS os = node1.getDeviceObject(OS.class);
@@ -263,8 +275,13 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 printMessageAndExit("Getting OS info hasn't been processed yet on node 4: " + procState, false);
             }
         }
-
-/*        
+        
+        // getting OS interface
+        os = node5.getDeviceObject(OS.class);
+        if (os == null) {
+            printMessageAndExit("OS doesn't exist on node 5", false);
+        }
+        
         // get info about module
         osInfoNode5 = os.read();
         if (osInfoNode5 == null) {
@@ -276,7 +293,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 printMessageAndExit("Getting OS info hasn't been processed yet on node 5: " + procState, false);
             }
         }
-*/
         
         // getting IO interface
         IO ioa = node2.getDeviceObject(IO.class);
@@ -313,6 +329,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         // getting additional info of the last call
         DPA_AdditionalInfo dpaAddInfoIo = ioa.getDPA_AdditionalInfoOfLastCall();
         
+        if (osInfoNode2 != null) {
+            moduleId = osInfoNode2.getPrettyFormatedModuleId();
+        } else {
+            moduleId = "not-known";
+        }
+        
         webResponseTopic = MQTTTopics.STD_ACTUATORS_AUSTYN;
 
         // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
@@ -322,7 +344,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
                 + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
                 + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
+                + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                 + "}";
         
         try {
@@ -365,16 +387,23 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         // getting additional info of the last call
         dpaAddInfoIo = iodev.getDPA_AdditionalInfoOfLastCall();
         
+        moduleId = null;
+        if (osInfoNode3 != null) {
+            moduleId = osInfoNode3.getPrettyFormatedModuleId();
+        } else {
+            moduleId = "not-known";
+        }
+        
         webResponseTopic = MQTTTopics.STD_ACTUATORS_DEVTECH;
 
         // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
         webResponseToBeSent
                 = "{\"e\":[{\"n\":\"io\"," + "\"sv\":\"" + STATE + "\"}],"
-                + "\"iqrf\":[{\"pid\":" + pidDevtech + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
+                + "\"iqrf\":[{\"pid\":" + pidDevtech + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
                 + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
                 + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
                 + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
+                + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                 + "}";
         
         try {
@@ -408,18 +437,17 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         }
         
         // getting Custom interface - teco
-/*
         Custom customTeco = node5.getDeviceObject(Custom.class);
         if (customTeco == null) {
             printMessageAndExit("Custom doesn't exist on node 5", true);
         }
-*/
         
         // getting results
         // set up maximal number of cycles according to your needs - only testing
-        final int MAX_CYCLES = 5000;
-        for (int cycle = 0; cycle < MAX_CYCLES; cycle++) {
-
+        //final int MAX_CYCLES = 5000;
+        //for (int cycle = 0; cycle < MAX_CYCLES; cycle++) {
+        while( true ) {
+            
             // after 100ms reading
             int timeoutP = 0x0A;
             short[] dataP = {0x47, 0x44, 0x03};
@@ -489,8 +517,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         }
                     }
 
-                    // periodic task ever 15s
-                    if (checkResponse == 1500) {
+                    // periodic task ever 60s
+                    if (checkResponse == 6000) {
                         checkResponse = 0;
                         break;
                     }
@@ -660,6 +688,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     int co2 = (receivedUARTPData[0] << 8) + receivedUARTPData[1];
                     
                     DecimalFormat df = new DecimalFormat("###.##");
+                   
+                    if (osInfoNode1 != null) {
+                        moduleId = osInfoNode1.getPrettyFormatedModuleId();
+                    } else {
+                        moduleId = "not-known";
+                    }
 
                     // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                     String protronixValuesToBeSent
@@ -674,7 +708,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
                             + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
                             + "],"
-                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode1.getPrettyFormatedModuleId() + "\""
+                            + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                             + "}";
 
                     // send data to mqtt
@@ -749,6 +783,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     float temperature = rawSixteenth / 16.0f;
                     
                     DecimalFormat df = new DecimalFormat("###.##");
+                    
+                    if (osInfoNode2 != null) {
+                        moduleId = osInfoNode2.getPrettyFormatedModuleId();
+                    } else {
+                        moduleId = "not-known";
+                    }
 
                     // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                     String austynValuesToBeSent
@@ -761,7 +801,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
                             + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
                             + "],"
-                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
+                            + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                             + "}";
 
                     // send data to mqtt
@@ -837,6 +877,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     float deviceBurningHour = (receivedUARTDData[13] * 256 + receivedUARTDData[14]) / 100;
                     float ledBurningHour = (receivedUARTDData[15] * 256 + receivedUARTDData[16]) / 100;
                     float dimming = receivedUARTDData[17];
+                    
+                    if (osInfoNode3 != null) {
+                        moduleId = osInfoNode3.getPrettyFormatedModuleId();
+                    } else {
+                        moduleId = "not-known";
+                    }
                     
                     // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                     String devtechValuesToBeSent
@@ -924,7 +970,13 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     String datmoluxDPAResponse = datmoluxDPAResponsesHeader + datmoluxResponse;
 
                     int activePower = receivedCustomDatmoluxData[0];
-
+                    
+                    if (osInfoNode4 != null) {
+                        moduleId = osInfoNode4.getPrettyFormatedModuleId();
+                    } else {
+                        moduleId = "not-known";
+                    }
+                    
                     // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                     String datmoluxValuesToBeSent
                             = "{\"e\":["
@@ -936,7 +988,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
                             + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
                             + "],"
-                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode4.getPrettyFormatedModuleId() + "\""
+                            + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                             + "}";
 
                     // send data to mqtt
@@ -957,10 +1009,10 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         }
 
         // after end of work with asynchronous messages, unrergister the listener
-        asyncManager.unregisterAsyncMsgListener(msgListener);
+        //asyncManager.unregisterAsyncMsgListener(msgListener);
 
         // end working with Simply
-        simply.destroy();
+        //simply.destroy();
     }
 
     public static String sendDPAWebRequest(String topic, String msgSenML) {
@@ -1035,22 +1087,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                                 printMessageAndExit("Setting IO output state hasn't been processed yet: " + procState, false);
                             }
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode2 != null) {
+                                moduleId = osInfoNode2.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"on\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"on\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
 
                     if (valueSV.equalsIgnoreCase("OFF")) {
@@ -1081,22 +1140,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                                 printMessageAndExit("Setting IO output state hasn't been processed yet: " + procState, false);
                             }
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode2 != null) {
+                                moduleId = osInfoNode2.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"off\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode2.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"off\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
                 }
             }
@@ -1146,22 +1212,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                                 printMessageAndExit("Setting IO output state hasn't been processed yet: " + procState, false);
                             }
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode3 != null) {
+                                moduleId = osInfoNode3.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"on\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode3.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"on\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
 
                     if (valueSV.equalsIgnoreCase("OFF")) {
@@ -1192,22 +1265,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                                 printMessageAndExit("Setting IO output state hasn't been processed yet: " + procState, false);
                             }
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = io.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode3 != null) {
+                                moduleId = osInfoNode3.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"off\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode3.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":" + "\"off\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
                 }
             }
@@ -1236,22 +1316,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode4 != null) {
+                                moduleId = osInfoNode4.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"on\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode4.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"on\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
 
                     if (valueSV.equalsIgnoreCase("OFF")) {
@@ -1267,22 +1354,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode4 != null) {
+                                moduleId = osInfoNode4.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"off\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode4.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"off\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
                     
                     if (valueSV.equalsIgnoreCase("UP")) {
@@ -1298,22 +1392,29 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode4 != null) {
+                                moduleId = osInfoNode4.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"up\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode4.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"up\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
                     
                     if (valueSV.equalsIgnoreCase("DOWN")) {
@@ -1325,26 +1426,34 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         }
                         
                         Short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoDOWN, dataDatmo);
+                        
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
+                        } 
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
+
+                            if (osInfoNode4 != null) {
+                                moduleId = osInfoNode4.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
+
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"down\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
+
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
                         }
-
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
-
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"down\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode4.getPrettyFormatedModuleId() + "\""
-                                + "}";
-
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
                     }
                 }
             }
@@ -1363,67 +1472,77 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     if (valueSV.equalsIgnoreCase("ON")) {
 
                         // getting Custom interface - teco
-                        /*
                         Custom customTeco = node5.getDeviceObject(Custom.class);
                         if (customTeco == null) {
                             printMessageAndExit("Custom doesn't exist on node 5", true);
                         }
                         
-                        Short[] result = customTeco.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
+                        Short[] result = customTeco.send((short) 0x20, (short) 0x00, new short[]{});
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customTeco.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customTeco.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode5 != null) {
+                                moduleId = osInfoNode5.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"on\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node5.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode5.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"on\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node5.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
-                        */
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
 
                     if (valueSV.equalsIgnoreCase("OFF")) {
 
                         // getting Custom interface - teco
-                        /*
                         Custom customTeco = node5.getDeviceObject(Custom.class);
                         if (customTeco == null) {
                             printMessageAndExit("Custom doesn't exist on node 5", true);
-                        }
+                        }                      
                         
-                        Short[] result = customTeco.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
+                        Short[] result = customTeco.send((short) 0x20, (short) 0x01, new short[]{});
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
                         }
+                        else {
+                            // getting additional info of the last call
+                            DPA_AdditionalInfo dpaAddInfo = customTeco.getDPA_AdditionalInfoOfLastCall();
 
-                        // getting additional info of the last call
-                        DPA_AdditionalInfo dpaAddInfo = customTeco.getDPA_AdditionalInfoOfLastCall();
+                            if (osInfoNode5 != null) {
+                                moduleId = osInfoNode5.getPrettyFormatedModuleId();
+                            } else {
+                                moduleId = "not-known";
+                            }
 
-                        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-                        webResponseToBeSent
-                                = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"on\"}],"
-                                + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node5.getId() + ","
-                                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
-                                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode5.getPrettyFormatedModuleId() + "\""
-                                + "}";
+                            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+                            webResponseToBeSent
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"off\"}],"
+                                    + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node5.getId() + ","
+                                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
+                                    + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
+                                    + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
+                                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                                    + "}";
 
-                        webRequestReceived = true;
-                        return webResponseToBeSent;
-                        */
+                            webRequestReceived = true;
+                            return webResponseToBeSent;
+                        }
                     }
                 }
             }
@@ -1432,59 +1551,8 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         return null;
     }
 
-    public static boolean sendDPAAsyncRequest() throws InterruptedException {
-
-        pidAsync++;
-        Thread.sleep(100);
-
-        // getting LEDR interface
-        LEDR ledr = node1.getDeviceObject(LEDR.class);
-        if (ledr == null) {
-            printMessageAndExit("LEDR doesn't exist or is not enabled", false);
-            return false;
-        }
-
-        // TODO: - do action based on published request - pulsing for now
-        VoidType setResult = ledr.pulse();
-        if (setResult == null) {
-            processNullResult(ledr, "Pulsing LEDR failed",
-                    "Pulsing LEDR hasn't been processed yet"
-            );
-            return false;
-        }
-
-        // getting additional info of the last call
-        DPA_AdditionalInfo dpaAddInfo = ledr.getDPA_AdditionalInfoOfLastCall();
-
-        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-        String asyncRequestToBeSent
-                = "{\"e\":[{\"n\":\"ledr\"," + "\"sv\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\"}],"
-                + "\"iqrf\":[{\"pid\":" + pidAsync + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node1.getId() + ","
-                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.LEDR + "," + "\"pcmd\":" + "\"" + LEDR.MethodID.PULSE.name().toLowerCase() + "\","
-                + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
-                + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode1.getPrettyFormatedModuleId() + "\""
-                + "}";
-
-        // send data to mqtt
-        try {
-            mqttCommunicator.publish(MQTTTopics.STD_DPA_ASYNCHRONOUS_RESPONSES, 2, asyncRequestToBeSent.getBytes());
-        } catch (MqttException ex) {
-            System.err.println("Error while publishing sync dpa message.");
-        }
-
+    public static boolean sendDPAAsyncRequest() {
         return true;
-    }
-
-    // processes NULL result
-    private static void processNullResult(GeneralLED led, String errorMsg, String notProcMsg) {
-        CallRequestProcessingState procState = led.getCallRequestProcessingStateOfLastCall();
-        if (procState == CallRequestProcessingState.ERROR) {
-            CallRequestProcessingError error = led.getCallRequestProcessingErrorOfLastCall();
-            printMessageAndExit(errorMsg + ": " + error, false);
-        } else {
-            printMessageAndExit(notProcMsg + ": " + procState, false);
-        }
     }
 
     @Override
@@ -1494,7 +1562,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
         //String nodeId = message.getMessageSource().getNodeId();
         //int peripheralNumber = message.getMessageSource().getPeripheralNumber();
-        //short[] mainData = (short[])message.getMainData();        
+        //Short[] mainData = (Short[])message.getMainData();        
         //DPA_AdditionalInfo additionalData = (DPA_AdditionalInfo)message.getAdditionalData();
         // sending control message back to network based on received message
         //asyncRequestReceived = true;

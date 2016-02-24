@@ -40,7 +40,7 @@ public class MQTTTopics {
     public static final String STD_ACTUATORS_DEVTECH = CLIENT_ID + "/std/actuators/devtech";
     public static final String STD_ACTUATORS_DATMOLUX = CLIENT_ID + "/std/actuators/datmolux";
     public static final String STD_ACTUATORS_TECO = CLIENT_ID + "/std/actuators/teco";
-    //public static final String LP_ACTUATORS_TECO = CLIENT_ID + "/lp/actuators/teco";
+    public static final String LP_ACTUATORS_TECO = CLIENT_ID + "/lp/actuators/teco";
     
     public static final String STD_STATUS_DEVTECH = CLIENT_ID + "/std/status/devtech";
     public static final String STD_STATUS_DEVTECH_DPA_REQUESTS = CLIENT_ID + "/std/status/devtech/dpa/requests";
@@ -51,7 +51,9 @@ public class MQTTTopics {
     public static final String STD_STATUS_DATMOLUX_DPA_REQUESTS = CLIENT_ID + "/std/status/datmolux/dpa/requests";
     public static final String STD_STATUS_DATMOLUX_DPA_CONFIRMATIONS = CLIENT_ID + "/std/status/datmolux/dpa/confirmations";
     public static final String STD_STATUS_DATMOLUX_DPA_RESPONSES = CLIENT_ID + "/std/status/datmolux/dpa/responses";
+    
     public static final String LP_STATUS_CITIQ = CLIENT_ID + "/lp/status/citiq";
+    public static final String LP_SETTING_CITIQ = CLIENT_ID + "/lp/setting/citiq";
     
     public static final String STD_DPA_REQUESTS = CLIENT_ID + "/std/dpa/requests";
     public static final String STD_DPA_CONFIRMATIONS = CLIENT_ID + "/std/dpa/confirmations";

@@ -39,6 +39,7 @@ public class MQTTCommunicator implements MqttCallback {
     private boolean clean;
     private String password;
     private String userName;
+    private String netType;
 
     /**
      * Constructs an instance of the sample client wrapper
@@ -52,13 +53,14 @@ public class MQTTCommunicator implements MqttCallback {
      * @param password the password for the user
      * @throws MqttException
      */
-    public MQTTCommunicator(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName, String password) throws MqttException {
+    public MQTTCommunicator(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName, String password, String netType) throws MqttException {
         
         this.brokerUrl = brokerUrl;
         this.quietMode = quietMode;
         this.clean = cleanSession;
         this.password = password;
         this.userName = userName;
+        this.netType = netType;
         
     	//This sample stores in a temporary directory... where messages temporarily
         // stored until the message has been delivered to the server.
@@ -189,9 +191,16 @@ public class MQTTCommunicator implements MqttCallback {
         
         try {
             client.connect(conOpt);
-            subscribe(MQTTTopics.STD_ACTUATORS_AUSTYN, 2);
-            subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
             
+            if(netType.equals("STD")) {
+                subscribe(MQTTTopics.STD_ACTUATORS_AUSTYN, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_DATMOLUX, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_TECO, 2);
+            } else if(netType.equals("LP")) {
+                subscribe(MQTTTopics.LP_SETTING_CITIQ, 2);
+                subscribe(MQTTTopics.STD_ACTUATORS_DEVTECH, 2);
+            }
         } catch (MqttException ex) {
             log("Reconnecting to " + brokerUrl + " with client ID " + client.getClientId() + "failed!" + ex.getMessage());
         }
@@ -239,12 +248,20 @@ public class MQTTCommunicator implements MqttCallback {
         // get data as string
         final String msg = new String(message.getPayload());
         
-        String resultToBeSent = OpenGatewayTest.sendDPAWebRequest(topic, msg);
+        String resultToBeSent = null; 
+        
+        if(netType.equals("STD")) {
+            resultToBeSent = OpenGatewayTest.sendDPAWebRequest(topic, msg);
+        } 
+        else if (netType.equals("LP")) {
+            resultToBeSent = OpenGatewayTestLp.sendDPAWebRequest(topic, msg);
+        }
 
-/*        
+/*
         if(resultToBeSent != null) {
             publish(Topics.ACTUATORS_RESPONSES_LEDS, 2, resultToBeSent.getBytes());
         }
 */
+        
     }
 }

@@ -81,7 +81,7 @@ public class OpenGatewayRunner{
 
             // IQRF MQTT
             String url = protocol + broker + ":" + port;
-            MQTTCommunicator mqttController = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password);
+            MQTTCommunicator mqttController = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password, "STD");
             mqttController.subscribe(subTopic, 2);
         }
 
