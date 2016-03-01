@@ -465,23 +465,19 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             short[] receivedUARTDData = null;
 
             // write UART peripheral
-            //Thread.sleep(100);
             //TODO: set hwpid
             UUID uartPRequestUid = uartP.async_writeAndRead(timeoutP, dataP);
 
             // send Custom 
-            //Thread.sleep(100);
             //TODO: set hwpid
             UUID tempRequestUid = customAustyn.async_send(peripheralAustyn, cmdIdTemp, dataTemp);
 
             // write UART peripheral
             uartD.setDefaultWaitingTimeout(5000);
-            //Thread.sleep(100);
             //TODO: set hwpid
             UUID uartDRequestUid = uartD.async_writeAndRead(timeoutD, dataD);
 
             // send Custom 
-            //Thread.sleep(100);
             //TODO: set hwpid
             UUID datmoPowerRequestUid = customDatmolux.async_send(peripheralDatmolux, cmdIdDatmoPOWER, dataDatmo);
             
@@ -531,96 +527,108 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 CallRequestProcessingState procStatePower = customDatmolux.getCallRequestProcessingState(datmoPowerRequestUid);
 
                 // if any error occured
-                if (procStateP == CallRequestProcessingState.ERROR) {
+                if(procStateP != null) {
+                    // if any error occured
+                    if (procStateP == CallRequestProcessingState.ERROR) {
 
-                    // general call error
-                    CallRequestProcessingError error = uartP.getCallRequestProcessingError(uartPRequestUid);
-                    printMessageAndExit("Getting UART data failed on node1: " + error.getErrorType(), false);
+                        // general call error
+                        CallRequestProcessingError error = uartP.getCallRequestProcessingError(uartPRequestUid);
+                        printMessageAndExit("Getting UART data failed on node1: " + error.getErrorType(), false);
 
-                } else {
-                    // have result already - protronix
-                    if (procStateP == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedUARTPData = uartP.getCallResultImmediately(uartPRequestUid, short[].class);
-                        
-                        if(receivedUARTPData != null && receivedUARTPData.length == 0) {
-                            // specific call error
-                            DPA_AdditionalInfo dpaAddInfo = uartP.getDPA_AdditionalInfoOfLastCall();
-                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                            printMessageAndExit("Getting UART data failed on node1, DPA error: " + dpaResponseCode, false);
-                        }                 
                     } else {
-                        System.out.println("Getting UART data on node 1 hasn't been processed yet: " + procStateP);
+                        // have result already - protronix
+                        if (procStateP == CallRequestProcessingState.RESULT_ARRIVED) {
+                            receivedUARTPData = uartP.getCallResultImmediately(uartPRequestUid, short[].class);
+
+                            if(receivedUARTPData != null && receivedUARTPData.length == 0) {
+                                // specific call error
+                                DPA_AdditionalInfo dpaAddInfo = uartP.getDPA_AdditionalInfoOfLastCall();
+                                DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                                printMessageAndExit("Getting UART data failed on node1, DPA error: " + dpaResponseCode, false);
+                            }                 
+                        } else {
+                            System.out.println("Getting UART data on node 1 hasn't been processed yet: " + procStateP);
+                        }
                     }
                 }
 
                 // if any error occured
-                if (procStateTemp == CallRequestProcessingState.ERROR) {
+                if (procStateTemp != null) {
+                    // if any error occured
+                    if (procStateTemp == CallRequestProcessingState.ERROR) {
 
-                    // general call error
-                    CallRequestProcessingError error = customAustyn.getCallRequestProcessingError(tempRequestUid);
-                    printMessageAndExit("Getting Custom data failed on node2: " + error.getErrorType(), false);
-                    
-                } else {
-                    // have result already - austyn
-                    if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedDataTemp = customAustyn.getCallResultImmediately(tempRequestUid, short[].class);
-                        
-                        if(receivedDataTemp != null && receivedDataTemp.length == 0) {
-                            // specific call error
-                            DPA_AdditionalInfo dpaAddInfo = customAustyn.getDPA_AdditionalInfoOfLastCall();
-                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                            printMessageAndExit("Getting Custom data failed on node2, DPA error: " + dpaResponseCode, false);
-                        }
+                        // general call error
+                        CallRequestProcessingError error = customAustyn.getCallRequestProcessingError(tempRequestUid);
+                        printMessageAndExit("Getting Custom data failed on node2: " + error.getErrorType(), false);
+
                     } else {
-                        System.out.println("Getting Custom data on node 2 hasn't been processed yet: " + procStateTemp);
+                        // have result already - austyn
+                        if (procStateTemp == CallRequestProcessingState.RESULT_ARRIVED) {
+                            receivedDataTemp = customAustyn.getCallResultImmediately(tempRequestUid, short[].class);
+
+                            if(receivedDataTemp != null && receivedDataTemp.length == 0) {
+                                // specific call error
+                                DPA_AdditionalInfo dpaAddInfo = customAustyn.getDPA_AdditionalInfoOfLastCall();
+                                DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                                printMessageAndExit("Getting Custom data failed on node2, DPA error: " + dpaResponseCode, false);
+                            }
+                        } else {
+                            System.out.println("Getting Custom data on node 2 hasn't been processed yet: " + procStateTemp);
+                        }
                     }
                 }
 
                 // if any error occured
-                if (procStateD == CallRequestProcessingState.ERROR) {
+                if(procStateD != null) {
+                    // if any error occured
+                    if (procStateD == CallRequestProcessingState.ERROR) {
 
-                    // general call error
-                    CallRequestProcessingError error = uartD.getCallRequestProcessingError(uartDRequestUid);
-                    printMessageAndExit("Getting UART data failed on node3: " + error.getErrorType(), false);
-                } else {
-                    // have result already - devtech
-                    if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedUARTDData = uartD.getCallResultImmediately(uartDRequestUid, short[].class);
-                        
-                        if(receivedUARTDData != null && receivedUARTDData.length == 0) {
-                            // specific call error
-                            DPA_AdditionalInfo dpaAddInfo = uartD.getDPA_AdditionalInfoOfLastCall();
-                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                            printMessageAndExit("Getting UART data failed on node3, DPA error: " + dpaResponseCode, false);
-                        }
+                        // general call error
+                        CallRequestProcessingError error = uartD.getCallRequestProcessingError(uartDRequestUid);
+                        printMessageAndExit("Getting UART data failed on node3: " + error.getErrorType(), false);
                     } else {
-                        System.out.println("Getting UART data on node3 hasn't been processed yet: " + procStateD);
+                        // have result already - devtech
+                        if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
+                            receivedUARTDData = uartD.getCallResultImmediately(uartDRequestUid, short[].class);
+
+                            if(receivedUARTDData != null && receivedUARTDData.length == 0) {
+                                // specific call error
+                                DPA_AdditionalInfo dpaAddInfo = uartD.getDPA_AdditionalInfoOfLastCall();
+                                DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                                printMessageAndExit("Getting UART data failed on node3, DPA error: " + dpaResponseCode, false);
+                            }
+                        } else {
+                            System.out.println("Getting UART data on node3 hasn't been processed yet: " + procStateD);
+                        }
                     }
                 }
 
                 // if any error occured
-                if (procStatePower == CallRequestProcessingState.ERROR) {
+                if(procStatePower != null) {
+                    // if any error occured
+                    if (procStatePower == CallRequestProcessingState.ERROR) {
 
-                    // general call error
-                    CallRequestProcessingError error = customDatmolux.getCallRequestProcessingError(datmoPowerRequestUid);
-                    printMessageAndExit("Getting Custom data failed on node 4: " + error.getErrorType(), false);
+                        // general call error
+                        CallRequestProcessingError error = customDatmolux.getCallRequestProcessingError(datmoPowerRequestUid);
+                        printMessageAndExit("Getting Custom data failed on node 4: " + error.getErrorType(), false);
 
-                } else {
-                    // have result already - datmolux
-                    if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
-                        receivedCustomDatmoluxData = customDatmolux.getCallResultImmediately(datmoPowerRequestUid, short[].class);
-                        
-                        if (receivedCustomDatmoluxData != null && receivedCustomDatmoluxData.length == 0) {
-                            // specific call error
-                            DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
-                            DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
-                            printMessageAndExit("Getting Custom data failed on node 4, DPA error: " + dpaResponseCode, false);
-                        }
                     } else {
-                        System.out.println("Getting Custom data on node 4 hasn't been processed yet: " + procStatePower);
+                        // have result already - datmolux
+                        if (procStateD == CallRequestProcessingState.RESULT_ARRIVED) {
+                            receivedCustomDatmoluxData = customDatmolux.getCallResultImmediately(datmoPowerRequestUid, short[].class);
+
+                            if (receivedCustomDatmoluxData != null && receivedCustomDatmoluxData.length == 0) {
+                                // specific call error
+                                DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
+                                DPA_ResponseCode dpaResponseCode = dpaAddInfo.getResponseCode();
+                                printMessageAndExit("Getting Custom data failed on node 4, DPA error: " + dpaResponseCode, false);
+                            }
+                        } else {
+                            System.out.println("Getting Custom data on node 4 hasn't been processed yet: " + procStatePower);
+                        }
                     }
+                    break;
                 }
-                break;
             }
 
             if (receivedUARTPData != null) {
@@ -631,53 +639,14 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
                     pidProtronix++;
 
-                    // fixed for web log, taken from logback
-                    //String protronixDPARequest = new String("01.00.0C.02.FF.FF.0A.47.44.03");
-                    String protronixDPARequest = new String("01000C02FFFF0A474403");
-                    
-                    // fixed for web log, taken from logback
-                    String protronixDPAconfirmation = new String("01000C02FFFFFF38010301");
-
-                    // header ... 1, 0, 12, 130, 0, 0, 0, 63 & data ... 6, 3, 1, 175, 0, 219, 112
-                    //String protronixDPAResponsesHeader = new String("01.00.0C.82.");
-                    String protronixDPAResponsesHeader = new String("01000C82");
-
                     // getting additional info of the last call
                     DPA_AdditionalInfo dpaAddInfo = uartP.getDPA_AdditionalInfoOfLastCall();
 
-                    StringBuilder protronixResponse = new StringBuilder();
-
-                    //protronixResponse.append(Integer.toHexString(dpaAddInfo.getHwProfile() & 0x00FF).toUpperCase());
-                    protronixResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0x00FF ));
-                    //protronixResponse.append(".");
-                    //protronixResponse.append(Integer.toHexString(dpaAddInfo.getHwProfile() & 0xFF00).toUpperCase());
-                    protronixResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0xFF00));
-                    //protronixResponse.append(".");
-                    //protronixResponse.append(Integer.toHexString(dpaAddInfo.getResponseCode().getCodeValue()).toUpperCase());
-                    protronixResponse.append(String.format("%02X", dpaAddInfo.getResponseCode().getCodeValue()));
-                    //protronixResponse.append(".");
-                    //protronixResponse.append(Integer.toHexString(dpaAddInfo.getDPA_Value()).toUpperCase());
-                    protronixResponse.append(String.format("%02X", dpaAddInfo.getDPA_Value()));
-                    //protronixResponse.append(".");
-
                     System.out.print("Received data from UART on the node " + node1.getId() + ": ");
-
                     for (int i = 0; i < receivedUARTPData.length; i++) {
-
-                        //protronixResponse.append(Integer.toHexString(readResultLoop).toUpperCase());
-                        protronixResponse.append(String.format("%02X", receivedUARTPData[i]));
-
-                        //if(i < receivedUARTPData.length - 1) {
-                        //    protronixResponse.append(".");
-                        //}
-
                         System.out.print(Integer.toHexString(receivedUARTPData[i]).toUpperCase() + " ");
                     }
-
                     System.out.println();
-
-                    // complete response
-                    String protronixDPAResponse = protronixDPAResponsesHeader + protronixResponse;
 
                     float temperature = (receivedUARTPData[4] << 8) + receivedUARTPData[5];
                     temperature = temperature / 10;
@@ -714,9 +683,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     // send data to mqtt
                     try {
                         mqttCommunicator.publish(MQTTTopics.STD_SENSORS_PROTRONIX, 2, protronixValuesToBeSent.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_PROTRONIX_DPA_REQUESTS, 2, protronixDPARequest.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_PROTRONIX_DPA_CONFIRMATIONS, 2, protronixDPAconfirmation.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_PROTRONIX_DPA_RESPONSES, 2, protronixDPAResponse.getBytes());
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
@@ -735,50 +701,17 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
                     pidAustyn++;
                     
-                    // fixed for web log, taken from logback
-                    //String austynDPARequest = new String("02.00.20.01.FF.FF");
-                    String austynDPARequest = new String("02002001FFFF");
-                    
-                    // fixed for web log, taken from logback
-                    String austynDPAconfirmation = new String("02002001FFFFFF39020302");
-
-                    // header ... 2, 0, 32, 129, 17, 2, 0, 84 & data ... 114, 1
-                    //String austynDPAResponsesHeader = new String("02.00.20.81.");
-                    String austynDPAResponsesHeader = new String("02002081");
-                    
                     // getting additional info of the last call
                     DPA_AdditionalInfo dpaAddInfo = customAustyn.getDPA_AdditionalInfoOfLastCall();
                     //DPA_AdditionalInfo dpaAddInfoTemp = (DPA_AdditionalInfo)custom.getCallResultAdditionalInfo(tempRequestUid);
-                    
-                    StringBuilder austynResponse = new StringBuilder();
-                    
-                    austynResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0x00FF ));
-                    //austynResponse.append(".");
-                    austynResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0xFF00));
-                    //austynResponse.append(".");
-                    austynResponse.append(String.format("%02X", dpaAddInfo.getResponseCode().getCodeValue()));
-                    //austynResponse.append(".");
-                    austynResponse.append(String.format("%02X", dpaAddInfo.getDPA_Value()));
-                    //austynResponse.append(".");
 
                     System.out.print("Received data from Custom on the node " + node2.getId() + ": ");
-                    
                     for (int i = 0; i < receivedDataTemp.length; i++) {
-                        
-                        austynResponse.append(String.format("%02X", receivedDataTemp[i]));
-
-                        //if (i < receivedDataTemp.length - 1) {
-                        //    austynResponse.append(".");
-                        //}
-
                         System.out.print(Integer.toHexString(receivedDataTemp[i]).toUpperCase() + " ");
                     }
                     
                     System.out.println();
                     
-                    // complete response
-                    String austynDPAResponse = austynDPAResponsesHeader + austynResponse;
-
                     short rawSixteenth = (short) (receivedDataTemp[0] | (receivedDataTemp[1] << 8));
                     float temperature = rawSixteenth / 16.0f;
                     
@@ -807,9 +740,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     // send data to mqtt
                     try {
                         mqttCommunicator.publish(MQTTTopics.STD_SENSORS_AUSTYN, 2, austynValuesToBeSent.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_AUSTYN_DPA_REQUESTS, 2, austynDPARequest.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_AUSTYN_DPA_CONFIRMATIONS, 2, austynDPAconfirmation.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_SENSORS_AUSTYN_DPA_RESPONSES, 2, austynDPAResponse.getBytes());
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
@@ -826,47 +756,17 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     System.out.print("No received data from UART on the node " + node3.getId());
                 }
                 else {
-
+                    
                     pidDevtech++;
-                    
-                    // fixed for web log, taken from logback
-                    String devtechDPARequest = new String("03000C02FFFFEF65FD");
-                    
-                    // fixed for web log, taken from logback
-                    String devtechDPAconfirmation = new String("03000C02FFFFFF38030303");
-
-                    // header ... 3, 0, 12, 130, 0, 0, 0, 55 & data 97, 222, 19, 55, 2, 68, 0, 2, 0, 17, 0, 0, 37, 0, 121, 0, 17, 100
-                    String devtechDPAResponsesHeader = new String("03000C82");
                     
                     // getting additional info of the last call
                     DPA_AdditionalInfo dpaAddInfo = uartD.getDPA_AdditionalInfoOfLastCall();
-                    
-                    StringBuilder devtechResponse = new StringBuilder();
-                    
-                    devtechResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0x00FF ));
-                    //devtechResponse.append(".");
-                    devtechResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0xFF00));
-                    //devtechResponse.append(".");
-                    devtechResponse.append(String.format("%02X", dpaAddInfo.getResponseCode().getCodeValue()));
-                    //devtechResponse.append(".");
-                    devtechResponse.append(String.format("%02X", dpaAddInfo.getDPA_Value()));
-                    //devtechResponse.append(".");
 
                     System.out.print("Received data from UART on the node " + node3.getId() + ": ");
                     for (int i = 0; i < receivedUARTDData.length; i++) {
-                        
-                        devtechResponse.append(String.format("%02X", receivedUARTDData[i]));
-
-                        //if (i < receivedUARTDData.length - 1) {
-                        //    devtechResponse.append(".");
-                        //}
-                        
                         System.out.print(Integer.toHexString(receivedUARTDData[i]).toUpperCase() + " ");
                     }
                     System.out.println();
-                    
-                    // complete response
-                    String devtechDPAResponse = devtechDPAResponsesHeader + devtechResponse;
 
                     float supplyVoltage = (receivedUARTDData[0] * 256 + receivedUARTDData[1]) / 100;
                     float frequency = (receivedUARTDData[2] * 256 + receivedUARTDData[3]) / 100;
@@ -909,9 +809,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     // send data to mqtt
                     try {
                         mqttCommunicator.publish(MQTTTopics.STD_STATUS_DEVTECH, 2, devtechValuesToBeSent.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DEVTECH_DPA_REQUESTS, 2, devtechDPARequest.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DEVTECH_DPA_CONFIRMATIONS, 2, devtechDPAconfirmation.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DEVTECH_DPA_RESPONSES, 2, devtechDPAResponse.getBytes());
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
@@ -930,44 +827,14 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
 
                     pidDatmolux++;
                     
-                    // fixed for web log, taken from logback
-                    String datmoluxDPARequest = new String("04002006FFFF");
-                    
-                    // fixed for web log, taken from logback
-                    String datmoluxDPAconfirmation = new String("04002006FFFFFF38040304");
-
-                    // header ... 4, 0, 32, 134, 17, 6, 0, 75 & data 0
-                    String datmoluxDPAResponsesHeader = new String("04002086");
-                    
                     // getting additional info of the last call
                     DPA_AdditionalInfo dpaAddInfo = customDatmolux.getDPA_AdditionalInfoOfLastCall();
-                    
-                    StringBuilder datmoluxResponse = new StringBuilder();
-                    
-                    datmoluxResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0x00FF ));
-                    //datmoluxResponse.append(".");
-                    datmoluxResponse.append(String.format("%02X", dpaAddInfo.getHwProfile() & 0xFF00));
-                    //datmoluxResponse.append(".");
-                    datmoluxResponse.append(String.format("%02X", dpaAddInfo.getResponseCode().getCodeValue()));
-                    //datmoluxResponse.append(".");
-                    datmoluxResponse.append(String.format("%02X", dpaAddInfo.getDPA_Value()));
-                    //datmoluxResponse.append(".");
-
+                 
                     System.out.print("Received data from Custom on the node " + node4.getId() + ": ");
-                    for (int i = 0; i < receivedCustomDatmoluxData.length; i++) {
-                        
-                        datmoluxResponse.append(String.format("%02X", receivedCustomDatmoluxData[i]));
-
-                        //if (i < receivedCustomDatmoluxData.length - 1) {
-                        //    datmoluxResponse.append(".");
-                        //}
-                        
+                    for (int i = 0; i < receivedCustomDatmoluxData.length; i++) {   
                         System.out.print(Integer.toHexString(receivedCustomDatmoluxData[i]).toUpperCase() + " ");
                     }
                     System.out.println();
-                    
-                    // complete response
-                    String datmoluxDPAResponse = datmoluxDPAResponsesHeader + datmoluxResponse;
 
                     int activePower = receivedCustomDatmoluxData[0];
                     
@@ -994,9 +861,6 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     // send data to mqtt
                     try {
                         mqttCommunicator.publish(MQTTTopics.STD_STATUS_DATMOLUX, 2, datmoluxValuesToBeSent.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DATMOLUX_DPA_REQUESTS, 2, datmoluxDPARequest.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DATMOLUX_DPA_CONFIRMATIONS, 2, datmoluxDPAconfirmation.getBytes());
-                        mqttCommunicator.publish(MQTTTopics.STD_STATUS_DATMOLUX_DPA_RESPONSES, 2, datmoluxDPAResponse.getBytes());
                     } catch (MqttException ex) {
                         System.err.println("Error while publishing sync dpa message.");
                     }
@@ -1461,7 +1325,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
         
         // there is a need to select topic
         if (MQTTTopics.STD_ACTUATORS_TECO.equals(topic)) {
-
+            
             // TODO: check nodeID and add selection
             if (valueDPA.equalsIgnoreCase("REQ")) {
 
