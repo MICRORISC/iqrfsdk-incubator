@@ -845,7 +845,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
                             + "\"dpavalue\":" + dpaAddInfo.getDPA_Value() + "}"
                             + "],"
-                            + "\"bn\":" + "\"urn:dev:mid:" + osInfoNode3.getPrettyFormatedModuleId() + "\""
+                            + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                             + "}";
 
                     // send data to mqtt
