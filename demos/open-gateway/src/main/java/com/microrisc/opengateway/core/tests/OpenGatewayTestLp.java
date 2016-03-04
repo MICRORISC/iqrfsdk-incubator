@@ -274,9 +274,13 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
             short[] receivedDataTemp = null;
             short[] receivedDataHum = null;
 
-            UUID tempRequestUid = custom.async_send(peripheralIQHome, cmdIdTemp, data);
-            UUID humRequestUid = custom.async_send(peripheralIQHome, cmdIdHum, data);
-
+            UUID tempRequestUid = null;
+            UUID humRequestUid = null;
+            if(custom != null) {
+                tempRequestUid = custom.async_send(peripheralIQHome, cmdIdTemp, data);
+                humRequestUid = custom.async_send(peripheralIQHome, cmdIdHum, data);
+            }
+                
             // maximal number of attempts of getting a result
             final int RETRIES = 3;
             int attempt = 0;
@@ -287,7 +291,7 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                 // main job is here for now - quick hack to test things first
                 while (true) {
 
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                     checkResponse++;
 
                     // dpa async task
@@ -310,16 +314,20 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                     }
 
                     // periodic task ever 60s
-                    if (checkResponse == 6000) {
+                    if (checkResponse == 60000) {
                         checkResponse = 0;
                         break;
                     }
                 }
 
                 // get request call state
-                CallRequestProcessingState procStateTemp = custom.getCallRequestProcessingState(tempRequestUid);
-                CallRequestProcessingState procStateHum = custom.getCallRequestProcessingState(humRequestUid);
-
+                CallRequestProcessingState procStateTemp = null;
+                CallRequestProcessingState procStateHum = null;
+                if(custom != null) {
+                    procStateTemp = custom.getCallRequestProcessingState(tempRequestUid);
+                    procStateHum = custom.getCallRequestProcessingState(humRequestUid);
+                }
+                    
                 // if any error occured
                 if(procStateTemp != null) {
                     // if any error occured
@@ -492,7 +500,12 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                                 printMessageAndExit("Custom doesn't exist on node 2", true);
                             }
 
-                            short[] result = customCitiq.send((short) 0x20, (short) 0x01, new short[]{});
+                            short[] result = null;
+                            int j = 3;
+                            do {
+                                result = customCitiq.send((short) 0x20, (short) 0x01, new short[]{});
+                            } while (result == null && --j > 0);
+                            
                             if (result == null) {
                                 CallRequestProcessingError error = customCitiq.getCallRequestProcessingErrorOfLastCall();
                                 printMessageAndExit("Setting Custom failed on node 2: " + error, false);
@@ -523,7 +536,12 @@ public class OpenGatewayTestLp implements AsynchronousMessagesListener<DPA_Async
                                 printMessageAndExit("Custom doesn't exist on node 3", true);
                             }
 
-                            short[] result = customCitiq.send((short) 0x20, (short) 0x01, new short[]{});
+                            short[] result = null;
+                            int j = 3;
+                            do {
+                                result = customCitiq.send((short) 0x20, (short) 0x01, new short[]{});
+                            } while (result == null && --j > 0);                            
+                            
                             if (result == null) {
                                 CallRequestProcessingError error = customCitiq.getCallRequestProcessingErrorOfLastCall();
                                 printMessageAndExit("Setting Custom failed on node 3: " + error, false);

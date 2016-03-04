@@ -108,6 +108,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
     private static short cmdIdDatmoON = 0x01;
     private static short cmdIdDatmoDOWN = 0x02;
     private static short cmdIdDatmoUP = 0x03;
+    private static short cmdIdDatmoLEVEL = 0x05;
     private static short cmdIdDatmoPOWER = 0x06;
     private static short[] dataDatmo = new short[]{};
     private static short[] receivedCustomDatmoluxData = null;
@@ -316,41 +317,41 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 System.out.print(Integer.toHexString(ioStateAustyn[i]).toUpperCase() + " ");
             }
             System.out.println();
-        }
-        
-        short PORTC = ioStateAustyn[2];
-        String STATE = " ";
-        
-        if( (PORTC & 0x20) == 0x20)
-           STATE = "on";
-        else
-           STATE = "off"; 
-        
-        // getting additional info of the last call
-        DPA_AdditionalInfo dpaAddInfoIo = ioa.getDPA_AdditionalInfoOfLastCall();
-        
-        if (osInfoNode2 != null) {
-            moduleId = osInfoNode2.getPrettyFormatedModuleId();
-        } else {
-            moduleId = "not-known";
-        }
-        
-        webResponseTopic = MQTTTopics.STD_ACTUATORS_AUSTYN;
 
-        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-        webResponseToBeSent
-                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":\"" + STATE + "\"}],"
-                + "\"iqrf\":[{\"pid\":" + pidAustyn + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
-                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
-                + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
-                + "}";
-        
-        try {
-            mqttCommunicator.publish(webResponseTopic, 2, webResponseToBeSent.getBytes());
-        } catch (MqttException ex) {
-            System.err.println("Error while publishing web response message.");
+            short PORTC = ioStateAustyn[2];
+            String STATE = " ";
+
+            if( (PORTC & 0x20) == 0x20)
+               STATE = "on";
+            else
+               STATE = "off"; 
+
+            // getting additional info of the last call
+            DPA_AdditionalInfo dpaAddInfoIo = ioa.getDPA_AdditionalInfoOfLastCall();
+
+            if (osInfoNode2 != null) {
+                moduleId = osInfoNode2.getPrettyFormatedModuleId();
+            } else {
+                moduleId = "not-known";
+            }
+
+            webResponseTopic = MQTTTopics.STD_ACTUATORS_AUSTYN;
+
+            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+            webResponseToBeSent
+                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":\"" + STATE + "\"}],"
+                    + "\"iqrf\":[{\"pid\":" + pidAustyn + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node2.getId() + ","
+                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                    + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
+                    + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
+                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                    + "}";
+
+            try {
+                mqttCommunicator.publish(webResponseTopic, 2, webResponseToBeSent.getBytes());
+            } catch (MqttException ex) {
+                System.err.println("Error while publishing web response message.");
+            }
         }
         
         // getting IO interface
@@ -375,71 +376,89 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 System.out.print(Integer.toHexString(ioStateDevtech[i]).toUpperCase() + " ");
             }
             System.out.println();
-        }
         
-        PORTC = ioStateDevtech[2];
-        
-        if( (PORTC & 0x08) == 0x08)
-           STATE = "on";
-        else
-           STATE = "off"; 
-        
-        // getting additional info of the last call
-        dpaAddInfoIo = iodev.getDPA_AdditionalInfoOfLastCall();
-        
-        moduleId = null;
-        if (osInfoNode3 != null) {
-            moduleId = osInfoNode3.getPrettyFormatedModuleId();
-        } else {
-            moduleId = "not-known";
-        }
-        
-        webResponseTopic = MQTTTopics.STD_ACTUATORS_DEVTECH;
+            short PORTC = ioStateDevtech[2];
+            String STATE = " ";
 
-        // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
-        webResponseToBeSent
-                = "{\"e\":[{\"n\":\"io\"," + "\"sv\":\"" + STATE + "\"}],"
-                + "\"iqrf\":[{\"pid\":" + pidDevtech + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
-                + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
-                + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
-                + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
-                + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
-                + "}";
-        
-        try {
-            mqttCommunicator.publish(webResponseTopic, 2, webResponseToBeSent.getBytes());
-        } catch (MqttException ex) {
-            System.err.println("Error while publishing web response message.");
+            if( (PORTC & 0x08) == 0x08)
+               STATE = "on";
+            else
+               STATE = "off"; 
+
+            // getting additional info of the last call
+            DPA_AdditionalInfo dpaAddInfoIo = iodev.getDPA_AdditionalInfoOfLastCall();
+
+            moduleId = null;
+            if (osInfoNode3 != null) {
+                moduleId = osInfoNode3.getPrettyFormatedModuleId();
+            } else {
+                moduleId = "not-known";
+            }
+
+            webResponseTopic = MQTTTopics.STD_ACTUATORS_DEVTECH;
+
+            // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
+            webResponseToBeSent
+                    = "{\"e\":[{\"n\":\"io\"," + "\"sv\":\"" + STATE + "\"}],"
+                    + "\"iqrf\":[{\"pid\":" + pidDevtech + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node3.getId() + ","
+                    + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.IO + "," + "\"pcmd\":" + "\"" + IO.MethodID.SET_OUTPUT_STATE.name().toLowerCase() + "\","
+                    + "\"hwpid\":" + dpaAddInfoIo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfoIo.getResponseCode().name().toLowerCase() + "\","
+                    + "\"dpavalue\":" + dpaAddInfoIo.getDPA_Value() + "}],"
+                    + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
+                    + "}";
+
+            try {
+                mqttCommunicator.publish(webResponseTopic, 2, webResponseToBeSent.getBytes());
+            } catch (MqttException ex) {
+                System.err.println("Error while publishing web response message.");
+            }
         }
 
         // getting UART interface - protronix
         UART uartP = node1.getDeviceObject(UART.class);
         if (uartP == null) {
             printMessageAndExit("UART doesn't exist on node 1", true);
+        } else {
+            //int protronixHWPID = 0x0132;
+            int protronixHWPID = 0xFFFF;
+            uartP.setRequestHwProfile(protronixHWPID);
         }
 
         // getting Custom interface - austyn
         Custom customAustyn = node2.getDeviceObject(Custom.class);
         if (customAustyn == null) {
             printMessageAndExit("Custom doesn't exist on node 2", true);
+        } else {
+            int austynHWPID = 0x0211;
+            customAustyn.setRequestHwProfile(austynHWPID);
         }
 
         // getting UART interface - devtech
         UART uartD = node3.getDeviceObject(UART.class);
         if (uartD == null) {
             printMessageAndExit("UART doesn't exist on node 3", true);
+        } else {
+            //int devtechHWPID = 0x0121;
+            int devtechHWPID = 0xFFFF;
+            uartD.setRequestHwProfile(devtechHWPID);
         }
 
         // getting Custom interface - datmolux
         Custom customDatmolux = node4.getDeviceObject(Custom.class);
         if (customDatmolux == null) {
             printMessageAndExit("Custom doesn't exist on node 4", true);
+        } else {
+            int datmoluxHWPID = 0x0611;
+            customDatmolux.setRequestHwProfile(datmoluxHWPID);
         }
         
         // getting Custom interface - teco
         Custom customTeco = node5.getDeviceObject(Custom.class);
         if (customTeco == null) {
             printMessageAndExit("Custom doesn't exist on node 5", true);
+        } else {
+            int tecoHWPID = 0x0511;
+            customTeco.setRequestHwProfile(tecoHWPID);
         }
         
         // getting results
@@ -465,22 +484,30 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
             short[] receivedUARTDData = null;
 
             // write UART peripheral
-            //TODO: set hwpid
-            UUID uartPRequestUid = uartP.async_writeAndRead(timeoutP, dataP);
-
+            UUID uartPRequestUid = null;
+            if(uartP != null) {
+                uartPRequestUid = uartP.async_writeAndRead(timeoutP, dataP);
+            }
+                
             // send Custom 
-            //TODO: set hwpid
-            UUID tempRequestUid = customAustyn.async_send(peripheralAustyn, cmdIdTemp, dataTemp);
-
+            UUID tempRequestUid = null;
+            if(customAustyn != null) {
+                tempRequestUid = customAustyn.async_send(peripheralAustyn, cmdIdTemp, dataTemp);
+            }
+                
             // write UART peripheral
-            uartD.setDefaultWaitingTimeout(5000);
-            //TODO: set hwpid
-            UUID uartDRequestUid = uartD.async_writeAndRead(timeoutD, dataD);
-
+            UUID uartDRequestUid = null;
+            if(uartD != null) {
+                uartD.setDefaultWaitingTimeout(5000);
+                uartDRequestUid = uartD.async_writeAndRead(timeoutD, dataD);
+            }
+                
             // send Custom 
-            //TODO: set hwpid
-            UUID datmoPowerRequestUid = customDatmolux.async_send(peripheralDatmolux, cmdIdDatmoPOWER, dataDatmo);
-            
+            UUID datmoPowerRequestUid = null;
+            if(customDatmolux != null) {
+                datmoPowerRequestUid = customDatmolux.async_send(peripheralDatmolux, cmdIdDatmoPOWER, dataDatmo);
+            }
+                
             // maximal number of attempts of getting a result
             final int RETRIES = 3;
             int attempt = 0;
@@ -491,7 +518,7 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                 // main job is here for now - quick hack to test
                 while (true) {
 
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                     checkResponse++;
 
                     // dpa async task
@@ -514,17 +541,32 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                     }
 
                     // periodic task ever 60s
-                    if (checkResponse == 6000) {
+                    if (checkResponse == 60000) {
                         checkResponse = 0;
                         break;
                     }
                 }
 
                 // get request call state
-                CallRequestProcessingState procStateP = uartP.getCallRequestProcessingState(uartPRequestUid);
-                CallRequestProcessingState procStateTemp = customAustyn.getCallRequestProcessingState(tempRequestUid);
-                CallRequestProcessingState procStateD = uartD.getCallRequestProcessingState(uartDRequestUid);
-                CallRequestProcessingState procStatePower = customDatmolux.getCallRequestProcessingState(datmoPowerRequestUid);
+                CallRequestProcessingState procStateP =  null;
+                if (uartP != null) {
+                    procStateP = uartP.getCallRequestProcessingState(uartPRequestUid);
+                }
+                
+                CallRequestProcessingState procStateTemp = null;
+                if(customAustyn != null) {
+                    procStateTemp = customAustyn.getCallRequestProcessingState(tempRequestUid);
+                }
+                
+                CallRequestProcessingState procStateD = null;
+                if(uartD != null) {    
+                    procStateD = uartD.getCallRequestProcessingState(uartDRequestUid);
+                }
+                
+                CallRequestProcessingState procStatePower = null;
+                if(customDatmolux != null) {
+                    procStatePower = customDatmolux.getCallRequestProcessingState(datmoPowerRequestUid);
+                }
 
                 // if any error occured
                 if(procStateP != null) {
@@ -941,7 +983,11 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             new IO_OutputValueSettings(0x02, 0x20, 0x20)
                         };
 
-                        result = io.setOutputState(iocs);
+                        int j = 3;
+                        do {
+                            result = io.setOutputState(iocs);
+                        } while ( result == null && --j > 0 );
+                                
                         if (result == null) {
                             CallRequestProcessingState procState = io.getCallRequestProcessingStateOfLastCall();
                             if (procState == CallRequestProcessingState.ERROR) {
@@ -993,8 +1039,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         IO_Command[] iocs = new IO_OutputValueSettings[]{
                             new IO_OutputValueSettings(0x02, 0x20, 0x00)
                         };
-
-                        result = io.setOutputState(iocs);
+                        
+                        int j = 3;
+                        do {
+                            result = io.setOutputState(iocs);
+                        } while ( result == null && --j > 0 );
+                        
                         if (result == null) {
                             CallRequestProcessingState procState = io.getCallRequestProcessingStateOfLastCall();
                             if (procState == CallRequestProcessingState.ERROR) {
@@ -1065,8 +1115,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         IO_Command[] iocs = new IO_OutputValueSettings[]{
                             new IO_OutputValueSettings(0x02, 0x08, 0x08)
                         };
-
-                        result = io.setOutputState(iocs);
+                        
+                        int j = 3;
+                        do {
+                            result = io.setOutputState(iocs);
+                        } while ( result == null && --j > 0 );
+                        
                         if (result == null) {
                             CallRequestProcessingState procState = io.getCallRequestProcessingStateOfLastCall();
                             if (procState == CallRequestProcessingState.ERROR) {
@@ -1118,8 +1172,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         IO_Command[] iocs = new IO_OutputValueSettings[]{
                             new IO_OutputValueSettings(0x02, 0x08, 0x00)
                         };
-
-                        result = io.setOutputState(iocs);
+                        
+                        int j = 3;
+                        do {
+                            result = io.setOutputState(iocs);
+                        } while ( result == null && --j > 0 );
+                        
                         if (result == null) {
                             CallRequestProcessingState procState = io.getCallRequestProcessingStateOfLastCall();
                             if (procState == CallRequestProcessingState.ERROR) {
@@ -1174,8 +1232,13 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                         if (customDatmolux == null) {
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
+                       
+                        short[] result = null;
+                        int j = 3;
+                        do {
+                            result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
+                        } while ( result == null && --j > 0 );
                         
-                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoON, dataDatmo);
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
@@ -1213,7 +1276,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoOFF, dataDatmo);
+                        short[] result = null;
+                        int j = 3;
+                        do {
+                            result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoOFF, dataDatmo);
+                        } while ( result == null && --j > 0 );
+                        
                         if (result == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
@@ -1251,8 +1319,16 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoUP, dataDatmo);
-                        if (result == null) {
+                        short[] resultUp = null;
+                        //short[] resultLevel = null;
+                        int j = 3;
+                        do {
+                            resultUp = customDatmolux.send(peripheralDatmolux, cmdIdDatmoUP, dataDatmo);
+                            // not working for now
+                            //resultLevel = customDatmolux.send(peripheralDatmolux, cmdIdDatmoLEVEL, dataDatmo);
+                        } while ( resultUp == null && --j > 0 );
+                       
+                        if (resultUp == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
                         }
@@ -1265,10 +1341,13 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             } else {
                                 moduleId = "not-known";
                             }
-
+                            
+                            //String level = Short.toString(resultLevel[0]);
+                            String level = "0";
+                            
                             // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                             webResponseToBeSent
-                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"up\"}],"
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"up\"," + "\"v\":" + level + "}],"
                                     + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
                                     + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
                                     + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
@@ -1289,9 +1368,15 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 4", true);
                         }
                         
-                        short[] result = customDatmolux.send(peripheralDatmolux, cmdIdDatmoDOWN, dataDatmo);
+                        short[] resultDown = null;
+                        //short[] resultLevel = null;
+                        int j = 3;
+                        do {
+                            resultDown = customDatmolux.send(peripheralDatmolux, cmdIdDatmoDOWN, dataDatmo);
+                            //resultLevel = customDatmolux.send(peripheralDatmolux, cmdIdDatmoLEVEL, dataDatmo);
+                        } while ( resultDown == null && --j > 0 );
                         
-                        if (result == null) {
+                        if (resultDown == null) {
                             CallRequestProcessingError error = customDatmolux.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 4: " + error, false);
                         } 
@@ -1304,10 +1389,13 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             } else {
                                 moduleId = "not-known";
                             }
-
+                            
+                            //String level = Short.toString(resultLevel[0]);
+                            String level = "0";
+                            
                             // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                             webResponseToBeSent
-                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"down\"}],"
+                                    = "{\"e\":[{\"n\":\"custom\"," + "\"sv\":" + "\"down\"," + "\"v\":" + level + "}],"
                                     + "\"iqrf\":[{\"pid\":" + valuePID + "," + "\"dpa\":\"resp\"," + "\"nadr\":" + node4.getId() + ","
                                     + "\"pnum\":" + DPA_ProtocolProperties.PNUM_Properties.USER_PERIPHERAL_START + "," + "\"pcmd\":" + "\"" + Custom.MethodID.SEND.name().toLowerCase() + "\","
                                     + "\"hwpid\":" + dpaAddInfo.getHwProfile() + "," + "\"rcode\":" + "\"" + dpaAddInfo.getResponseCode().name().toLowerCase() + "\","
@@ -1341,7 +1429,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 5", true);
                         }
                         
-                        short[] result = customTeco.send((short) 0x20, (short) 0x00, new short[]{});
+                        short[] result = null;
+                        int j = 3;
+                        do {
+                            result = customTeco.send((short) 0x20, (short) 0x00, new short[]{});
+                        } while ( result == null && --j > 0 );
+                        
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
@@ -1379,7 +1472,12 @@ public class OpenGatewayTest implements AsynchronousMessagesListener<DPA_Asynchr
                             printMessageAndExit("Custom doesn't exist on node 5", true);
                         }                      
                         
-                        short[] result = customTeco.send((short) 0x20, (short) 0x01, new short[]{});
+                        short[] result = null;
+                        int j = 3;
+                        do {
+                            result = customTeco.send((short) 0x20, (short) 0x01, new short[]{});
+                        } while (result == null && --j > 0);
+                        
                         if (result == null) {
                             CallRequestProcessingError error = customTeco.getCallRequestProcessingErrorOfLastCall();
                             printMessageAndExit("Setting Custom failed on node 5: " + error, false);
