@@ -1,0 +1,178 @@
+STD network
+===========
+
+Protronix
+---------
+
+DPA requests:
+
+sensor readings - 0100 0C 02 3201 0A474403
+
+DPA responses:
+
+sensor readings - 0100 0C 82 3201 0048032801B400C957
+
+
+Austyn
+------
+
+DPA requests:
+
+temperature - 0200 20 01 1102
+
+off - 0200 09 01 1102 022000
+on  - 0200 09 01 1102 022020
+
+DPA responses:
+
+temperature - 0200 20 81 1102 004D5C01
+
+
+Devtech
+-------
+
+DPA requests:
+
+status - 0300 0C 02 2101 EF65FD
+
+off - 0300 09 01 2101 020800
+on  - 0300 09 01 2101 020808
+
+DPA responses:
+
+status - 0300 0C 82 2101 00366390133701FA000100130000550155002E64
+
+
+Datmolux
+--------
+
+DPA requests:
+
+consumption -  0400 20 06 1106
+
+off  - 0400 20 00 1106
+on   - 0400 20 01 1106
+down - 0400 20 02 1106
+up   - 0400 20 03 1106
+
+DPA responses:
+
+consumption - 0400 20 86 1106 004019
+
+
+Teco
+----
+
+DPA requests:
+
+off  - 0500 20 01 1105
+on   - 0500 20 00 1105
+
+
+LP network
+==========
+
+IQHome
+------
+
+DPA requests:
+
+temperature - 0100 20 10 1202
+humidity    - 0100 20 11 1202
+
+DPA responses:
+
+temperature - 0100 20 90 1202 00403101
+humidity    - 0100 20 91 1202 0040B002
+
+
+CITIQ
+-----
+
+DPA async requests:
+
+parking place 1   - 0200 20 00 7FC1 00
+parking place 2   - 0300 20 00 7FC1 01
+
+DPA requests:
+
+calibrate place 1 - 0200 20 01 7FC1
+calibrate place 2 - 0300 20 01 7FC1
+
+
+Teco
+----
+
+DPA async requests:
+
+simple switch   - 0400 20 00 1901 000601
+double switch 1 - 0500 20 00 1901 000602
+double switch 2 - 0600 20 00 1901 000604
+  
+
+protronix readings  
+
+b827eb26c73d/std/dpa/packets 01000C02FFFF0A474403
+b827eb26c73d/std/dpa/packets 01000C02FFFFFF2F010301
+b827eb26c73d/std/dpa/packets 01000C820000004A034801B300C63F
+
+austyn temp
+
+b827eb26c73d/std/dpa/packets 02002001FFFF
+b827eb26c73d/std/dpa/packets 02002001FFFFFF48020302
+b827eb26c73d/std/dpa/packets 020020811102004D5A01
+
+devtech status
+
+b827eb26c73d/std/dpa/packets 03000C02FFFFEF65FD
+b827eb26c73d/std/dpa/packets 03000C02FFFFFF48030303
+b827eb26c73d/std/dpa/packets 03000C82000000306298133703CA000300530000590168003164
+
+datmolux power
+
+b827eb26c73d/std/dpa/packets 04002006FFFF
+b827eb26c73d/std/dpa/packets 04002006FFFFFF48050305
+b827eb26c73d/std/dpa/packets 040020861106003100
+
+austyn off
+
+b827eb26c73d/std/dpa/packets 02000900FFFF022000
+b827eb26c73d/std/dpa/packets 02000900FFFFFF48020302
+b827eb26c73d/std/dpa/packets 020009801102004D
+b827eb26c73d/std/dpa/packets 02000901FFFF022000
+b827eb26c73d/std/dpa/packets 02000901FFFFFF48020302
+b827eb26c73d/std/dpa/packets 020009811102004D
+
+devtech off
+
+b827eb26c73d/std/dpa/packets 03000900FFFF020800
+b827eb26c73d/std/dpa/packets 03000900FFFFFF48030303
+b827eb26c73d/std/dpa/packets 030009800000002F
+b827eb26c73d/std/dpa/packets 03000901FFFF020800
+b827eb26c73d/std/dpa/packets 03000901FFFFFF48030303
+b827eb26c73d/std/dpa/packets 030009810000002F
+
+datmolux off
+
+b827eb26c73d/std/dpa/packets 04002000FFFF
+b827eb26c73d/std/dpa/packets 04002000FFFFFF48040304
+b827eb26c73d/std/dpa/packets 0400208011060033
+
+teco off
+
+b827eb26c73d/std/dpa/packets 05002001FFFF
+b827eb26c73d/std/dpa/packets 05002001FFFFFF48050305
+b827eb26c73d/std/dpa/packets 0500208111050043
+
+iqhome temp and hum
+
+b827eb26c73d/lp/dpa/packets 01002010FFFF
+b827eb26c73d/lp/dpa/packets 01002010FFFFFF3D010801
+b827eb26c73d/lp/dpa/packets 010020901202003D3101
+
+b827eb26c73d/lp/dpa/packets 01002011FFFF
+b827eb26c73d/lp/dpa/packets 01002011FFFFFF3E010801
+b827eb26c73d/lp/dpa/packets 010020911202003DB202
+
+Bus 001 Device 011: ID 12d1:14fe Huawei Technologies Co., Ltd.
+Bus 001 Device 007: ID 12d1:1506 Huawei Technologies Co., Ltd. E398 LTE/UMTS/GSM Modem/Networkcard

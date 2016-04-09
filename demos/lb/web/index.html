@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Light&Building Tradeshow</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <!-- Custom Styles theme -->
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+    <div class="container">
+       
+
+          <div class="row">
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <span id="connectionStatus">Connection - Disconnected.</span>
+                    </div>
+                    <div class="panel-body fixed-height-panel" id="serverCollapse">
+                        <form class="form-horizontal">
+                          <!-- <div class="form-group">
+                                <label for="hostnameInput" class="col-sm-2 control-label">Server</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="hostnameInput" value="10.11.14.95">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="portInput" class="col-sm-2 control-label">Port</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="portInput" value="9001">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientIdInput" class="col-sm-2 control-label">Client ID</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="clientIdInput" value="clientId">
+                                </div>
+                            </div>  -->
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button id="clientConnectButton" type="button" class="btn btn-default" onclick="connect();">Connect</button>
+                                    <button id="clientDisconnectButton" type="button" class="btn btn-default" onclick="disconnect();" disabled>Disconnect</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="col-md-4 ">
+                <div class="panel panel-default">
+
+                    <div class="panel-body fixed-height-panel" id="subscribeCollapse" >
+                        <form class="form-horizontal">
+
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button id="subscribeButton" type="button" class="btn btn-default" onclick="subscribe();" disabled>Subscribe</button>
+                                    <button id="unsubscribeButton" type="button" class="btn btn-default" onclick="unsubscribe();" disabled>Unsubscribe</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 none">
+                <div class="panel panel-default none">
+                    <div class="panel-heading">
+                        Publish Message
+                    </div>
+                    <div class="panel-body fixed-height-panel" id="publishCollapse" >
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label for="publishTopicInput" class="col-sm-2 control-label">Topic</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="publishTopicInput" value="/test" disabled>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="publishQosInput" class="col-sm-2 control-label">QoS</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" id="publishQosInput" disabled>
+                                        <option>0</option>
+                                        <option>1</option>
+                                        <option>2</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="publishMessageInput" class="col-sm-2 control-label">Message</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" id="publishMessageInput" rows="2" disabled></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button id="publishButton" type="button" class="btn btn-default" onclick="publish();" disabled>Publish</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row"> -->
+           <div class="col-lg-8">
+               <h2 id="temp">TEMPERATURE:</h2>
+               <h2 id="templp">TEMPERATURE 2:</h2>
+               <hr>
+               <h2>LedR</h2>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('r','on');" id="ledron">LedR ON</button>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('r','off');" id="ledroff">LedR OFF</button>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('r','pulse');" id="ledrpulse">LedR PULSE</button>
+               <img src="img/ledr-off.png" width="30" height="30" id="img_ledr">
+               <span id="ledr"></span>
+                <hr>
+               <h2>LedG</h2>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('g','on');" id="ledgon">LedG ON</button>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('g','off');" id="ledgoff">LedG OFF</button>
+               <button id="publishButton" type="button" class="btn btn-default" onclick="publishiqrf('g','pulse')" id="ledgpulse">LedG PULSE</button>
+               <img src="img/ledg-off.png" width="30" height="30" id="img_ledg">
+                <span id="ledg"></span>
+           </div>
+        </div>
+        <div class="row" style="margin-top:50px;">
+
+
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <a class="chevron-toggle" data-toggle="collapse" data-target="#subscriptionsCollapse" href="#collapseOne">
+                        Last Messages
+                    </a>
+                    </div>
+                    <div class="panel-body collapse in fixed-height-panel" id="subscriptionsCollapse">
+                        <table class="table table-hover table-condensed tableSection" id="lastMessageTable">
+                            <thead>
+                                <tr>
+                                    <th>Topic</th>
+                                    <th>Payload</th>
+                                    <th>Time</th>
+                                    <th>QoS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <a class="chevron-toggle" data-toggle="collapse" data-target="#historyCollapse" href="#collapseOne">
+                        History
+                        </a>
+                    </div>
+                    <div class="panel-body collapse in fixed-height-panel" id="historyCollapse">
+                        <span class="right"><a href="#" onclick="clearHistory()">Clear History</a></span>
+                        <table class="table table-hover table-condensed  tableSection" id="incomingMessageTable">
+
+                            <thead>
+                                <tr>
+                                    <th>Topic</th>
+                                    <th>Payload</th>
+                                    <th>Time</th>
+                                    <th>Qos</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source Paho MQTT Client-->
+    <script src="js/mqttws31.js"></script>
+
+    <!-- Utility Javascript -->
+    <script src="js/utility.js"></script>
+
+    <!-- Javascript used for Bootstrap Theme -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+      $(document).ready(function() {
+                connect();
+
+        });
+    </script>
+</body>
+
+</html>

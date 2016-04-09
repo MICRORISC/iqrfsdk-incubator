@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.executable>java</exec.executable>
+                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+            </properties>
+        </action>
+        <action>
+            <actionName>debug</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.executable>java</exec.executable>
+                <jpda.listen>true</jpda.listen>
+                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+            </properties>
+        </action>
+        <action>
+            <actionName>profile</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.executable>java</exec.executable>
+                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-clean&amp;install</actionName>
+            <displayName>clean&amp;install</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>install</goal>
+            </goals>
+        </action>
+        <action>
+            <actionName>CUSTOM-install</actionName>
+            <displayName>install</displayName>
+            <goals>
+                <goal>install</goal>
+            </goals>
+        </action>
+    </actions>
