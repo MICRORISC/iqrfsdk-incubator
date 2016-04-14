@@ -31,10 +31,13 @@ import com.microrisc.simply.iqrf.dpa.v22x.types.DPA_AdditionalInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.Thermometer_values;
 import java.io.File;
+import java.io.FileReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 /**
  * Running first tests with DPA <-> MQTT.
@@ -52,7 +55,7 @@ public class OpenGatewayTcpCloudMicrorisc {
     public static Map<String, UUID> DPAThermometerUUIDs = new LinkedHashMap<>();
     public static Map<String, Thermometer_values> DPADataOut = new LinkedHashMap<>();
     public static Map<String, String> DPAParsedDataOut = new LinkedHashMap<>();
-    public static final int READING = 120; 
+    public static final int READING = 5; 
     public static String moduleId = null;
 
     // references for MQTT
@@ -70,6 +73,7 @@ public class OpenGatewayTcpCloudMicrorisc {
 
     // references for APP
     public static int pidMicrorisc = 0;
+    public static final int NUMBEROFNODES = 1; 
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
@@ -78,8 +82,13 @@ public class OpenGatewayTcpCloudMicrorisc {
         DPASimply = getDPASimply(configFile);
         
         // MQTT INIT
-        String url = protocol + broker + ":" + port;
-        mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password, certFile);
+        String configFileMQTT = "Mqtt.json";
+        MQTTConfig configMQTT = new MQTTConfig();
+        if( loadMQTTConfig(configFileMQTT, configMQTT) ) {
+            mqttCommunicator = new MQTTCommunicator(configMQTT);
+        } else {
+            printMessageAndExit("Error in MQTT config loading", true);
+        }
         
         // APP EXIT HOOK
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -200,8 +209,8 @@ public class OpenGatewayTcpCloudMicrorisc {
             
             int key = Integer.parseInt(entry.getKey());
             
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
                 
                 System.out.println("Getting OsInfo on the node: " + entry.getKey());
 
@@ -243,8 +252,8 @@ public class OpenGatewayTcpCloudMicrorisc {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Getting Thermometer on the node: " + entry.getKey());
                 
@@ -277,8 +286,8 @@ public class OpenGatewayTcpCloudMicrorisc {
 
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Issuing req for node: " + entry.getKey());
                 
@@ -306,8 +315,8 @@ public class OpenGatewayTcpCloudMicrorisc {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Collecting resp for node: " + entry.getKey());
 
@@ -376,8 +385,8 @@ public class OpenGatewayTcpCloudMicrorisc {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Parsing resp for node: " + entry.getKey());
 
@@ -423,8 +432,8 @@ public class OpenGatewayTcpCloudMicrorisc {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-40
-            if(0 < key && 40 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Sending parsed data for node: " + entry.getKey());
 
@@ -437,6 +446,55 @@ public class OpenGatewayTcpCloudMicrorisc {
                 }
             }
         }
+    }
+    
+       // loads mqtt params from file
+    public static boolean loadMQTTConfig(String configFile, MQTTConfig configMQTT) {
+        
+        JSONParser parser = new JSONParser();
+        
+        try {
+            Object obj = parser.parse(new FileReader("config" + File.separator + "mqtt" + File.separator + configFile));
+            
+            JSONObject jsonObject = (JSONObject) obj;
+        
+            configMQTT.setProtocol((String) jsonObject.get("protocol"));
+            configMQTT.setBroker((String) jsonObject.get("broker"));
+            configMQTT.setPort( (long) jsonObject.get("port"));    
+            configMQTT.setClientId((String) jsonObject.get("clientid"));
+            configMQTT.setCleanSession((boolean) jsonObject.get("cleansession"));
+            configMQTT.setQuiteMode((boolean) jsonObject.get("quitemode"));
+            configMQTT.setSsl((boolean) jsonObject.get("ssl"));
+            configMQTT.setCertFilePath((String) jsonObject.get("certfile"));
+            configMQTT.setUsername((String) jsonObject.get("username"));
+            configMQTT.setPassword((String) jsonObject.get("password"));            
+            
+            System.out.println("protocol: " + configMQTT.getProtocol());
+            System.out.println("broker: " + configMQTT.getBroker());
+            System.out.println("port: " + Long.toString(configMQTT.getPort()));
+            System.out.println("clientid: " + configMQTT.getClientId());
+            System.out.println("cleansession: " + Boolean.toString(configMQTT.isCleanSession()));
+            System.out.println("quitemode: " + Boolean.toString(configMQTT.isQuiteMode()));
+            System.out.println("ssl: " + Boolean.toString(configMQTT.isSsl()));
+            System.out.println("certfile: " + configMQTT.getCertFilePath());
+            System.out.println("username: " + configMQTT.getUsername());
+            System.out.println("password: " + configMQTT.getPassword());       
+
+/*            
+            JSONArray companyList = (JSONArray) jsonObject.get("Company List");
+            System.out.println("\nCompany List:");
+            Iterator<String> iterator = companyList.iterator();
+            while (iterator.hasNext()) {
+                System.out.println(iterator.next());
+            }
+*/            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
     }
 
     // prints out specified message, destroys the Simply and exits

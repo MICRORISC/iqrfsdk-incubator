@@ -10,9 +10,9 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudProtronix</exec.args>
                 <exec.executable>java</exec.executable>
-                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+                <exec.workingdir></exec.workingdir>
             </properties>
         </action>
         <action>
@@ -25,10 +25,10 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudProtronix</exec.args>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
-                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+                <exec.workingdir></exec.workingdir>
             </properties>
         </action>
         <action>
@@ -41,9 +41,9 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudMicrorisc</exec.args>
+                <exec.args>-Djava.library.path=src/main/resources/natives/x64 -Dlogback.configurationFile=config/cdc/logback.xml -classpath %classpath com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudProtronix</exec.args>
                 <exec.executable>java</exec.executable>
-                <exec.workingdir>C:\Users\lenovo\Desktop\TCPCLOUD\open-gateway-tcpcloud</exec.workingdir>
+                <exec.workingdir></exec.workingdir>
             </properties>
         </action>
         <action>

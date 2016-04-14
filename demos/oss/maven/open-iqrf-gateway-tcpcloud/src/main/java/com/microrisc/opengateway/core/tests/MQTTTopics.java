@@ -27,34 +27,41 @@ import java.net.UnknownHostException;
  */
 public class MQTTTopics {
     
-    private static String CLIENT_ID = getMac();
+    private static String CLIENT_ID;
     
-    public static final String STD_SENSORS_PROTRONIX = CLIENT_ID + "/sensors/protronix/";
-    public static final String STD_SENSORS_MICRORISC = CLIENT_ID + "/sensors/microrisc/";
+    public static String STD_SENSORS_PROTRONIX;
+    public static String STD_SENSORS_MICRORISC;
 
+    static {
+        CLIENT_ID = getMac();
+        STD_SENSORS_PROTRONIX = CLIENT_ID + "/sensors/protronix/";
+        STD_SENSORS_MICRORISC = CLIENT_ID + "/sensors/microrisc/";
+    }
+    
     private static String getMac() {
         
-        InetAddress ip;
+        String interfaceName = "eth0";
+        //InetAddress ip;
         try {
-            ip = InetAddress.getLocalHost();
-            System.out.println("Current IP address : " + ip.getHostAddress());
+            //ip = InetAddress.getLocalHost();
+            //System.out.println("Current IP address : " + ip.getHostAddress());
 
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+            NetworkInterface network = NetworkInterface.getByName(interfaceName);
 
             byte[] mac = network.getHardwareAddress();
             System.out.print("Current MAC address : ");
 
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < mac.length; i++) {
-                sb.append(String.format("%02X", mac[i]));
+                sb.append(String.format("%02x", mac[i]));
             }
             System.out.println(sb.toString());
             
             return sb.toString();
             
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return "";
+        //} catch (UnknownHostException e) {
+        //    e.printStackTrace();
+        //    return "";
         } catch (SocketException e) {
             e.printStackTrace();
             return "";

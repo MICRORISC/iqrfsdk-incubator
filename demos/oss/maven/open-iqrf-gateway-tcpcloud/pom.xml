@@ -98,7 +98,11 @@
             <artifactId>minimal-json</artifactId>
             <version>0.9.4</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
         
         <!--Daemon - download automatically-->
         <dependency>
@@ -146,7 +150,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <finalName>open-gateway-tcpcloud-0.0.1</finalName>
+                    <finalName>open-iqrf-gateway-tcpcloud-0.0.1</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>

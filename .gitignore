@@ -1,4 +1,3 @@
-demos/lb/maven/open-gateway-microrisc/target/
-demos/oss/maven/open-gateway-tcpcloud/target/
-/demos/oss/maven/open-iqrf-gateway-tcpcloud/target/
-/demos/lb/maven/open-iqrf-gateway-microrisc/target/
+*.log
+demos/oss/maven/open-iqrf-gateway-tcpcloud/target/
+demos/lb/maven/open-iqrf-gateway-microrisc/target/

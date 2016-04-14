@@ -149,7 +149,7 @@
     </logger>
 
     <!-- iqrf.dpa.connector package -->
-    <logger name="com.microrisc.simply.iqrf.dpa.connector.DPA_Connector" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.connector.DPA_Connector" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
 
@@ -194,7 +194,7 @@
             <appender-ref ref="FILE" />
     </logger>
     
-    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.ProtocolStateMachine" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.ProtocolStateMachine" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
     
@@ -353,13 +353,13 @@
     
 	
     <!-- com.microrisc.simply.network.spi package --> 
-    <logger name="com.microrisc.simply.network.spi.SPINetworkLayer" level="INFO">
+    <logger name="com.microrisc.simply.network.spi.SPINetworkLayer" level="INHERITED">
             <appender-ref ref="FILE" />
     </logger>
 
 
     <!-- root -->
-    <root level="ERROR">
+    <root level="OFF">
         <!-- appender-ref ref="STDOUT" / -->
     </root>
 </configuration>

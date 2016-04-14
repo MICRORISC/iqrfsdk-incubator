@@ -30,6 +30,7 @@ import com.microrisc.simply.iqrf.dpa.v22x.devices.UART;
 import com.microrisc.simply.iqrf.dpa.v22x.types.DPA_AdditionalInfo;
 import com.microrisc.simply.iqrf.dpa.v22x.types.OsInfo;
 import java.io.File;
+import java.io.FileReader;
 import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 /**
  * Running first tests with DPA <-> MQTT.
@@ -72,16 +75,22 @@ public class OpenGatewayTcpCloudProtronix {
     
     // references for APP
     public static int pidProtronix = 0;
+    public static final int NUMBEROFNODES = 1; 
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
         // DPA INIT
-        String configFile = "Simply.properties";
-        DPASimply = getDPASimply(configFile);
+        String configFileDPA = "Simply.properties";
+        DPASimply = getDPASimply(configFileDPA);
         
         // MQTT INIT
-        String url = protocol + broker + ":" + port;
-        mqttCommunicator = new MQTTCommunicator(url, clientId, cleanSession, quietMode, userName, password, certFile);
+        String configFileMQTT = "Mqtt.json";
+        MQTTConfig configMQTT = new MQTTConfig();
+        if( loadMQTTConfig(configFileMQTT, configMQTT) ) {
+            mqttCommunicator = new MQTTCommunicator(configMQTT);
+        } else {
+            printMessageAndExit("Error in MQTT config loading", true);
+        }
         
         // APP EXIT HOOK
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -202,8 +211,8 @@ public class OpenGatewayTcpCloudProtronix {
             
             int key = Integer.parseInt(entry.getKey());
                 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
                 
                 System.out.println("Getting OsInfo on the node: " + entry.getKey());
 
@@ -245,8 +254,8 @@ public class OpenGatewayTcpCloudProtronix {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
                 
                 System.out.println("Getting UART on the node: " + entry.getKey());
                 
@@ -258,6 +267,7 @@ public class OpenGatewayTcpCloudProtronix {
                 } 
                 else {
                     int protronixHWPID = 0x0132;
+                    //int protronixHWPID = 0xFFFF;
                     uart.setRequestHwProfile(protronixHWPID);
                     
                     // worst case: 60 * 50 * 2 + 2000 (uart timeout) + 2000 (reserve)
@@ -277,9 +287,12 @@ public class OpenGatewayTcpCloudProtronix {
         // delay before getting uart response on the node
         short uartTimeout = 0x70;
         
-        // 1B address, 1B function, 2B register, 2B number of registers, 2B crc
+        // 1B address, 1B function, 2B register, 2B number of registers + 2B crc
         short[] modbusIn = { 0x01, 0x04, 0x75, 0x31, 0x00, 0x03, 0x00, 0x00 };
-        modbusIn = calculateModbudCrc(modbusIn, 0, 6);
+        
+        int crc = calculateModbusCrc(modbusIn);
+        modbusIn[modbusIn.length - 2] = (short) (crc & 0xFF);
+        modbusIn[modbusIn.length - 1] = (short) ((crc & 0xFF00) >> 8);
         
         Map<String, UUID> DPAUARTUUIDs = new LinkedHashMap<>();
         UUID uuidUART = null;
@@ -289,8 +302,8 @@ public class OpenGatewayTcpCloudProtronix {
 
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Issuing req for node: " + entry.getKey());
                 
@@ -319,8 +332,8 @@ public class OpenGatewayTcpCloudProtronix {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Collecting resp for node: " + entry.getKey());
 
@@ -387,8 +400,8 @@ public class OpenGatewayTcpCloudProtronix {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Parsing resp for node: " + entry.getKey());
 
@@ -466,8 +479,8 @@ public class OpenGatewayTcpCloudProtronix {
             
             int key = Integer.parseInt(entry.getKey());
 
-            // node 1-20
-            if(0 < key && 20 >= key) {
+            // node 1-NUMBEROFNODES
+            if(0 < key && NUMBEROFNODES >= key) {
 
                 System.out.println("Sending parsed data for node: " + entry.getKey());
 
@@ -483,6 +496,57 @@ public class OpenGatewayTcpCloudProtronix {
             }
         }
     }
+    
+    // loads mqtt params from file
+    public static boolean loadMQTTConfig(String configFile, MQTTConfig configMQTT) {
+        
+        JSONParser parser = new JSONParser();
+        
+        try {
+            Object obj = parser.parse(new FileReader("config" + File.separator + "mqtt" + File.separator + configFile));
+            
+            JSONObject jsonObject = (JSONObject) obj;
+        
+            configMQTT.setProtocol((String) jsonObject.get("protocol"));
+            configMQTT.setBroker((String) jsonObject.get("broker"));
+            configMQTT.setPort((long) jsonObject.get("port"));    
+            configMQTT.setClientId((String) jsonObject.get("clientid"));
+            configMQTT.setCleanSession((boolean) jsonObject.get("cleansession"));
+            configMQTT.setQuiteMode((boolean) jsonObject.get("quitemode"));
+            configMQTT.setSsl((boolean) jsonObject.get("ssl"));
+            configMQTT.setCertFilePath((String) jsonObject.get("certfile"));
+            configMQTT.setUsername((String) jsonObject.get("username"));
+            configMQTT.setPassword((String) jsonObject.get("password"));            
+
+/*            
+            System.out.println("protocol: " + configMQTT.getProtocol());
+            System.out.println("broker: " + configMQTT.getBroker());
+            System.out.println("port: " + Long.toString(configMQTT.getPort()));
+            System.out.println("clientid: " + configMQTT.getClientId());
+            System.out.println("cleansession: " + Boolean.toString(configMQTT.isCleanSession()));
+            System.out.println("quitemode: " + Boolean.toString(configMQTT.isQuiteMode()));
+            System.out.println("ssl: " + Boolean.toString(configMQTT.isSsl()));
+            System.out.println("certfile: " + configMQTT.getCertFilePath());
+            System.out.println("username: " + configMQTT.getUsername());
+            System.out.println("password: " + configMQTT.getPassword());       
+*/
+            
+/*            
+            JSONArray companyList = (JSONArray) jsonObject.get("Company List");
+            System.out.println("\nCompany List:");
+            Iterator<String> iterator = companyList.iterator();
+            while (iterator.hasNext()) {
+                System.out.println(iterator.next());
+            }
+*/            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
 
     // prints out specified message, destroys the Simply and exits
     public static void printMessageAndExit(String message, boolean exit) {
@@ -496,37 +560,25 @@ public class OpenGatewayTcpCloudProtronix {
         }
     }
     
-    public static short[] calculateModbudCrc( short[] dataInOut, int start, int end ) {
+    public static int calculateModbusCrc( short[] dataIn ) {
         
-        int lstart = start;
-        int i = 0;
+        int crc = 0xFFFF;
         
-        if ( start < end && end < dataInOut.length ) {
-            int crc = 0xFFFF;
-            
-            while ( lstart < end ) {
-                crc ^= ( dataInOut[i] & 0xFF );
+        for (int i = 0; i < dataIn.length-2; i++) {
 
-                for (int j=0; j<8; j++) {
-                    boolean bitOne = ((crc & 0x01) == 0x01);
-                    crc >>>= 1;
-                    if(bitOne) {
-                        crc ^= 0x0000A001;
-                    }
+            crc ^= (dataIn[i] & 0xFF);
+
+            for (int j = 0; j < 8; j++) {
+                boolean bitOne = ((crc & 0x01) == 0x01);
+                crc >>>= 1;
+                if (bitOne) {
+                    crc ^= 0x0000A001;
                 }
-
-                lstart++; i++;
             }
-            
-            dataInOut[end] = (short)(crc & 0x00FF);
-            dataInOut[end + 1] = (short)((crc & 0xFF00) >> 8);
-            
-            return (dataInOut);
-            
-        } else {
-            System.out.println("Invalid start (" + start + ") and end (" + end + ")");
-            return null;
         }
+
+        //System.out.println("CRC: " + Integer.toHexString(crc & 0xFFFF));
+        return crc;
     }
     
     // sender of mqtt requests to dpa 

@@ -58,24 +58,19 @@ public class MQTTCommunicator implements MqttCallback {
     /**
      * Constructs an instance of the sample client wrapper
      *
-     * @param brokerUrl the url of the server to connect to
-     * @param clientId the client id to connect with
-     * @param cleanSession clear state at end of connection or not (durable or
-     * non-durable subscriptions)
-     * @param quietMode whether debug should be printed to standard out
-     * @param userName the username to connect with
-     * @param password the password for the user
-     * @param certFile path to ca file
+     * @param MQTTConfig the configuration params of the server to connect to
      * @throws MqttException
      */
-    public MQTTCommunicator(String brokerUrl, String clientId, boolean cleanSession, boolean quietMode, String userName, String password, String certFile) throws MqttException {
+    public MQTTCommunicator(MQTTConfig mqttConfig) throws MqttException {
+        
+        String brokerUrl = mqttConfig.getProtocol() + mqttConfig.getBroker() + ":" + mqttConfig.getPort();
         
         this.brokerUrl = brokerUrl;
-        this.quietMode = quietMode;
-        this.clean = cleanSession;
-        this.password = password;
-        this.userName = userName;
-        this.certFile = certFile;
+        this.quietMode = mqttConfig.isQuiteMode();
+        this.clean = mqttConfig.isCleanSession();
+        this.certFile = mqttConfig.getCertFilePath();
+        this.userName = mqttConfig.getUsername();
+        this.password = mqttConfig.getPassword();
         
     	//This sample stores in a temporary directory... where messages temporarily
         // stored until the message has been delivered to the server.
@@ -90,14 +85,14 @@ public class MQTTCommunicator implements MqttCallback {
             conOpt = new MqttConnectOptions();
             conOpt.setCleanSession(clean);
             
-            if (password != null) {
+            if (!password.isEmpty()) {
                 conOpt.setPassword(this.password.toCharArray());
             }
-            if (userName != null) {
+            if (!userName.isEmpty()) {
                 conOpt.setUserName(this.userName);
             }
             
-            if (certFile != null) {
+            if (!certFile.isEmpty()) {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
                 InputStream certFileInputStream = fullStream(certFile);
@@ -116,7 +111,7 @@ public class MQTTCommunicator implements MqttCallback {
             }
 
             // Construct an MQTT blocking mode client
-            client = new MqttClient(this.brokerUrl, clientId, dataStore);
+            client = new MqttClient(this.brokerUrl, mqttConfig.getClientId(), dataStore);
 
             // Set this wrapper as the callback handler
             client.setCallback(this);

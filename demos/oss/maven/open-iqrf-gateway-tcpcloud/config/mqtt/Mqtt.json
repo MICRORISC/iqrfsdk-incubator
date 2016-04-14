@@ -3,9 +3,9 @@
     "broker": "localhost",
     "port": 1883,
     "clientid": "std",
-    "cleansession": 1,
-    "quitemode": 0,
-    "ssl": 0,
+    "cleansession": true,
+    "quitemode": false,
+    "ssl": false,
     "certfile": "",
     "password": "",
     "username": ""
