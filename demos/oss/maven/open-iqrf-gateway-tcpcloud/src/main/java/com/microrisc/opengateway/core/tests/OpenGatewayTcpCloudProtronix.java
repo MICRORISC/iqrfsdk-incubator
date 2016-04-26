@@ -57,7 +57,7 @@ public class OpenGatewayTcpCloudProtronix {
     public static Map<String, UUID> DPAUARTUUIDs = new LinkedHashMap<>();
     public static Map<String, short[]> DPADataOut = new LinkedHashMap<>();
     public static Map<String, List<String>> DPAParsedDataOut = new LinkedHashMap<>();
-    public static final int READING = 5; 
+    public static final int READING = 60*10; 
     public static String moduleId = null;
     
     // references for MQTT
@@ -75,7 +75,7 @@ public class OpenGatewayTcpCloudProtronix {
     
     // references for APP
     public static int pidProtronix = 0;
-    public static final int NUMBEROFNODES = 1; 
+    public static final int NUMBEROFNODES = 20; 
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
@@ -147,7 +147,7 @@ public class OpenGatewayTcpCloudProtronix {
                 //    webRequestReceived = false;
                 //}
 
-                // periodic task to read protronix every 5s - main
+                // periodic task to read protronix every 10min - main
                 if (checkResponse == READING * 1000) {
                     checkResponse = 0;
                     break;
@@ -408,7 +408,7 @@ public class OpenGatewayTcpCloudProtronix {
                 if (null != entry.getValue()) {
 
                     if (0 == entry.getValue().length) {
-                        System.out.print("No received data from UART on the node ");
+                        System.out.println("No received data from UART on the node");
 
                         DPAParsedDataOut.put(entry.getKey(), null);
                     }
@@ -419,10 +419,12 @@ public class OpenGatewayTcpCloudProtronix {
                         DPA_AdditionalInfo dpaAddInfo = DPAUARTs.get(entry.getKey()).getDPA_AdditionalInfoOfLastCall();
 
                         int co2 = (entry.getValue()[3] << 8) + entry.getValue()[4];
-                        int humidity = (entry.getValue()[5] << 8) + entry.getValue()[6];
+                        float humidity = (entry.getValue()[5] << 8) + entry.getValue()[6];
+			humidity /= 10;
                         float temperature = (entry.getValue()[7] << 8) + entry.getValue()[8];
+                        temperature /= 10;
 
-                        DecimalFormat df = new DecimalFormat("###.#");
+                        DecimalFormat df = new DecimalFormat("##.#");
 
                         if (DPAOSInfo.get(entry.getKey()) != null) {
                             moduleId = DPAOSInfo.get(entry.getKey()).getPrettyFormatedModuleId();
@@ -444,7 +446,7 @@ public class OpenGatewayTcpCloudProtronix {
                         
                         String mqttDataHumidity
                                 = "{\"e\":["
-                                + "{\"n\":\"humidity\"," + "\"u\":\"%RH\"," + "\"v\":" + humidity + "}"
+                                + "{\"n\":\"humidity\"," + "\"u\":\"%RH\"," + "\"v\":" + df.format(humidity) + "}"
                                 + "],"
                                 + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                                 + "}";
@@ -482,9 +484,9 @@ public class OpenGatewayTcpCloudProtronix {
             // node 1-NUMBEROFNODES
             if(0 < key && NUMBEROFNODES >= key) {
 
-                System.out.println("Sending parsed data for node: " + entry.getKey());
-
                 if( null != entry.getValue() ) {
+                    System.out.println("Sending parsed data for node: " + entry.getKey());
+                                    
                     for (String mqttData : entry.getValue()) {
                         try {
                             mqttCommunicator.publish(MQTTTopics.STD_SENSORS_PROTRONIX + entry.getKey(), 2, mqttData.getBytes());
