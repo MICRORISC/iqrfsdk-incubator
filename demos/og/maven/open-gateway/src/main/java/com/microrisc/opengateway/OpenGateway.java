@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.microrisc.opengateway.core.tests;
+package com.microrisc.opengateway;
 
+import com.microrisc.opengateway.app.APPConfig;
+import com.microrisc.opengateway.mqtt.MQTTConfig;
+import com.microrisc.opengateway.mqtt.MQTTTopics;
+import com.microrisc.opengateway.mqtt.MQTTCommunicator;
 import com.microrisc.simply.CallRequestProcessingState;
 import static com.microrisc.simply.CallRequestProcessingState.ERROR;
 import com.microrisc.simply.Network;
@@ -42,11 +46,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 /**
- * Running first tests with DPA <-> MQTT.
+ * Sending Protronix values over MQTT in JSON SENML format .
  *
  * @author Rostislav Spinar
  */
-public class OpenGatewayTcpCloudProtronix {
+public class OpenGateway {
 
     // references for DPA
     public static DPA_Simply DPASimply = null;
@@ -57,7 +61,6 @@ public class OpenGatewayTcpCloudProtronix {
     public static Map<String, UUID> DPAUARTUUIDs = new LinkedHashMap<>();
     public static Map<String, short[]> DPADataOut = new LinkedHashMap<>();
     public static Map<String, List<String>> DPAParsedDataOut = new LinkedHashMap<>();
-    public static final int READING = 30*1; 
     public static String moduleId = null;
     
     // references for MQTT
@@ -74,8 +77,9 @@ public class OpenGatewayTcpCloudProtronix {
     public static String userName = null;
     
     // references for APP
-    public static int pidProtronix = 0;
-    public static final int NUMBEROFNODES = 3; 
+    public static int pid = 0;
+    public static long numberOfSensors = 1;
+    public static long pollingPeriod = 60*1;
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
@@ -90,6 +94,16 @@ public class OpenGatewayTcpCloudProtronix {
             mqttCommunicator = new MQTTCommunicator(configMQTT);
         } else {
             printMessageAndExit("Error in MQTT config loading", true);
+        }
+        
+        // APP INIT
+        String configFileAPP = "App.json";
+        APPConfig configAPP = new APPConfig();
+        if( loadAPPConfig(configFileAPP, configAPP) ) {
+            numberOfSensors = configAPP.getNumberOfSensors();
+            pollingPeriod = configAPP.getPollingPeriod();
+        } else {
+            printMessageAndExit("Error in APP config loading", true);
         }
         
         // APP EXIT HOOK
@@ -147,8 +161,8 @@ public class OpenGatewayTcpCloudProtronix {
                 //    webRequestReceived = false;
                 //}
 
-                // periodic task to read protronix every 30s - main
-                if (checkResponse == READING * 1000) {
+                // periodic task to read protronix every set second - main
+                if (checkResponse == pollingPeriod * 1000) {
                     checkResponse = 0;
                     break;
                 }
@@ -171,8 +185,7 @@ public class OpenGatewayTcpCloudProtronix {
         DPA_Simply DPASimply = null;
         
         try {
-            //DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "cdc" + File.separator + configFile);
-            DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "spi" + File.separator + configFile);
+            DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "simply" + File.separator + configFile);
         } catch (SimplyException ex) {
             printMessageAndExit("Error while creating Simply: " + ex.getMessage(), true);
         }
@@ -213,7 +226,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
                 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
                 
                 System.out.println("Getting OsInfo on the node: " + entry.getKey());
 
@@ -256,7 +269,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
                 
                 System.out.println("Getting UART on the node: " + entry.getKey());
                 
@@ -304,7 +317,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
 
                 System.out.println("Issuing req for node: " + entry.getKey());
                 
@@ -334,7 +347,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
 
                 System.out.println("Collecting resp for node: " + entry.getKey());
 
@@ -402,7 +415,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
 
                 System.out.println("Parsing resp for node: " + entry.getKey());
 
@@ -414,7 +427,7 @@ public class OpenGatewayTcpCloudProtronix {
                         DPAParsedDataOut.put(entry.getKey(), null);
                     }
                     else {
-                        pidProtronix++;
+                        pid++;
 
                         // getting additional info of the last call
                         DPA_AdditionalInfo dpaAddInfo = DPAUARTs.get(entry.getKey()).getDPA_AdditionalInfoOfLastCall();
@@ -483,7 +496,7 @@ public class OpenGatewayTcpCloudProtronix {
             int key = Integer.parseInt(entry.getKey());
 
             // node 1-NUMBEROFNODES
-            if(0 < key && NUMBEROFNODES >= key) {
+            if(0 < key && numberOfSensors >= key) {
 
                 if( null != entry.getValue() ) {
                     System.out.println("Sending parsed data for node: " + entry.getKey());
@@ -542,6 +555,27 @@ public class OpenGatewayTcpCloudProtronix {
                 System.out.println(iterator.next());
             }
 */            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // loads app params from file
+    public static boolean loadAPPConfig(String configFile, APPConfig configAPP) {
+        
+        JSONParser parser = new JSONParser();
+        
+        try {
+            Object obj = parser.parse(new FileReader("config" + File.separator + "app" + File.separator + configFile));
+            
+            JSONObject jsonObject = (JSONObject) obj;
+        
+            configAPP.setNumberOfSensors((long) jsonObject.get("numberOfSensors"));
+            configAPP.setPollingPeriod((long) jsonObject.get("pollingPeriod"));
         }
         catch (Exception e) {
             e.printStackTrace();

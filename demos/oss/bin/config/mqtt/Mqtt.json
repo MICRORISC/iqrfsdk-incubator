@@ -1,0 +1,12 @@
+{
+    "protocol": "tcp://",
+    "broker": "localhost",
+    "port": 1883,
+    "clientid": "std",
+    "cleansession": true,
+    "quitemode": false,
+    "ssl": false,
+    "certfile": "",
+    "password": "",
+    "username": ""
+}

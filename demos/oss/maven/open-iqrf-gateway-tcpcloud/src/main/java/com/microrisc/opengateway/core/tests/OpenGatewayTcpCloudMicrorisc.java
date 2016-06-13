@@ -55,7 +55,7 @@ public class OpenGatewayTcpCloudMicrorisc {
     public static Map<String, UUID> DPAThermometerUUIDs = new LinkedHashMap<>();
     public static Map<String, Thermometer_values> DPADataOut = new LinkedHashMap<>();
     public static Map<String, String> DPAParsedDataOut = new LinkedHashMap<>();
-    public static final int READING = 5; 
+    public static final int READING = 30; 
     public static String moduleId = null;
 
     // references for MQTT
@@ -73,7 +73,7 @@ public class OpenGatewayTcpCloudMicrorisc {
 
     // references for APP
     public static int pidMicrorisc = 0;
-    public static final int NUMBEROFNODES = 1; 
+    public static final int NUMBEROFNODES = 3; 
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
@@ -145,7 +145,7 @@ public class OpenGatewayTcpCloudMicrorisc {
                 //    webRequestReceived = false;
                 //}
 
-                // periodic task to read protronix every 5s - main
+                // periodic task to read protronix every 30s - main
                 if (checkResponse == READING * 1000) {
                     checkResponse = 0;
                     break;

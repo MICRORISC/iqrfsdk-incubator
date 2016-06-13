@@ -3,7 +3,7 @@
     
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microrisc</groupId>
-    <artifactId>open-iqrf-gateway-tcpcloud</artifactId>
+    <artifactId>open-gateway</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
     
@@ -129,7 +129,7 @@
         </dependency>
     </dependencies>
     
-    <name>open-iqrf-gateway-tcpcloud</name>
+    <name>open-gateway</name>
     
     <build>
         <plugins>
@@ -150,12 +150,12 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <finalName>open-iqrf-gateway-tcpcloud-0.0.1</finalName>
+                    <finalName>open-gateway-0.0.1</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.microrisc.opengateway.core.tests.OpenGatewayTcpCloudProtronix</mainClass>
+                            <mainClass>com.microrisc.opengateway.OpenGateway</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
