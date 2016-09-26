@@ -40,6 +40,11 @@
             <artifactId>simply-iqrf-dpa-v22x</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.microrisc.simply.devices</groupId>
+            <artifactId>simply-devices-protronix-dpa22x</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
         
         <!--For GW-USB-0x or CK-USB-04A CDC-IQRF - Insert Manually-->
         <dependency>
@@ -50,29 +55,29 @@
         <dependency>
             <groupId>com.microrisc.cdc</groupId>
             <artifactId>jlibcdc</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0-SNAPSHOT</version>
         </dependency>
         
         <!--For Raspberry PI SPI - Insert Manually-->
         <dependency>
             <groupId>com.microrisc.simply.network.spi</groupId>
             <artifactId>simply-network-spi</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <version>1.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.microrisc.rpi</groupId>
+            <groupId>com.microrisc.rpi.io</groupId>
             <artifactId>jlibrpi-io</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.microrisc.rpi</groupId>
+            <groupId>com.microrisc.rpi.spi</groupId>
             <artifactId>jlibrpi-spi</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.microrisc.rpi</groupId>
+            <groupId>com.microrisc.rpi.spi.iqrf</groupId>
             <artifactId>jlibrpi-spi-iqrf</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         
         <!--MQTT client - download automatically-->
@@ -150,7 +155,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <finalName>open-iqrf-gateway-tcpcloud-0.0.1</finalName>
+                    <finalName>open-iqrf-gateway-tcpcloud-0.0.2</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>

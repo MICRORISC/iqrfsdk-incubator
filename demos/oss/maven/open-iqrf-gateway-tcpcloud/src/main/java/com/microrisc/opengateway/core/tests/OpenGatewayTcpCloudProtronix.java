@@ -75,7 +75,7 @@ public class OpenGatewayTcpCloudProtronix {
     
     // references for APP
     public static int pidProtronix = 0;
-    public static final int NUMBEROFNODES = 3; 
+    public static final int NUMBEROFNODES = 1; 
 
     public static void main(String[] args) throws InterruptedException, MqttException {
         
@@ -171,8 +171,8 @@ public class OpenGatewayTcpCloudProtronix {
         DPA_Simply DPASimply = null;
         
         try {
-            //DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "cdc" + File.separator + configFile);
-            DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "spi" + File.separator + configFile);
+            DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "cdc" + File.separator + configFile);
+            //DPASimply = DPA_SimplyFactory.getSimply("config" + File.separator + "spi" + File.separator + configFile);
         } catch (SimplyException ex) {
             printMessageAndExit("Error while creating Simply: " + ex.getMessage(), true);
         }
@@ -289,7 +289,7 @@ public class OpenGatewayTcpCloudProtronix {
         short uartTimeout = 0xFE;
         
         // 1B address, 1B function, 2B register, 2B number of registers + 2B crc
-        short[] modbusIn = { 0x01, 0x04, 0x75, 0x31, 0x00, 0x03, 0x00, 0x00 };
+        short[] modbusIn = { 0x01, 0x04, 0x75, 0x37, 0x00, 0x01, 0x00, 0x00 };
         
         int crc = calculateModbusCrc(modbusIn);
         modbusIn[modbusIn.length - 2] = (short) (crc & 0xFF);
@@ -418,14 +418,14 @@ public class OpenGatewayTcpCloudProtronix {
 
                         // getting additional info of the last call
                         DPA_AdditionalInfo dpaAddInfo = DPAUARTs.get(entry.getKey()).getDPA_AdditionalInfoOfLastCall();
+                        int people = (entry.getValue()[3] << 8) + entry.getValue()[4];
+                        
+                        //float humidity = (entry.getValue()[5] << 8) + entry.getValue()[6];
+			//humidity /= 10;
+                        //float temperature = (entry.getValue()[7] << 8) + entry.getValue()[8];
+                        //temperature /= 10;
 
-                        int co2 = (entry.getValue()[3] << 8) + entry.getValue()[4];
-                        float humidity = (entry.getValue()[5] << 8) + entry.getValue()[6];
-			humidity /= 10;
-                        float temperature = (entry.getValue()[7] << 8) + entry.getValue()[8];
-                        temperature /= 10;
-
-                        DecimalFormat df = new DecimalFormat("##.#");
+                        //DecimalFormat df = new DecimalFormat("##.#");
 
                         if (DPAOSInfo.get(entry.getKey()) != null) {
                             moduleId = DPAOSInfo.get(entry.getKey()).getPrettyFormatedModuleId();
@@ -435,6 +435,7 @@ public class OpenGatewayTcpCloudProtronix {
 
                         List<String> mqttData = new LinkedList<>();
                         
+                        /*
                         // https://www.ietf.org/archive/id/draft-jennings-senml-10.txt
                         String mqttDataTemperature
                                 = "{\"e\":["
@@ -453,15 +454,16 @@ public class OpenGatewayTcpCloudProtronix {
                                 + "}";
                         
                         mqttData.add(mqttDataHumidity);
+                        */
                         
-                        String mqttDataCO2
+                        String mqttDataPeople
                                 = "{\"e\":["
-                                + "{\"n\":\"co2\"," + "\"u\":\"PPM\"," + "\"v\":" + co2 + "}"
+                                + "{\"n\":\"people\"," + "\"u\":\"persons\"," + "\"v\":" + people + "}"
                                 + "],"
                                 + "\"bn\":" + "\"urn:dev:mid:" + moduleId + "\""
                                 + "}";
                         
-                        mqttData.add(mqttDataCO2);
+                        mqttData.add(mqttDataPeople);
 
                         DPAParsedDataOut.put(entry.getKey(), mqttData);
                     }
