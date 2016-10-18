@@ -1,0 +1,17 @@
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/utils/dpa/DPACommunicatorHandlerImpl.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/communication/CommunicationHandlerException.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/tests/OpenGatewayTest.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/internal/OpenGatewayManager.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/communication/dpa/DPACommunicationHandler.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/internal/OpenGatewayRunner.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/boot/Bootstrap.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/internal/OpenGateway.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/communication/mqtt/MQTTCommunicationHandler.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/communication/CommunicationHandler.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/utils/dpa/ReceiverTask.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/tests/MQTTCommunicator.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/tests/OpenGatewayTestLp.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/internal/OpenGatewayConfiguration.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/utils/dpa/PeriodicTask.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/utils/mqtt/MQTTCommunicationHandlerImpl.java
+/home/spinarr/Dev/github/jsimply/simply-modules/simply-demos/light-building/src/main/java/com/microrisc/opengateway/core/tests/MQTTTopics.java
