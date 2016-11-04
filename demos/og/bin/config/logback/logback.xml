@@ -199,6 +199,11 @@
     </logger>
     
     
+    <!-- iqrf.dpa.protocol.timing package -->
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.timing.TimingParamsStorage" level="INHERITED">
+            <appender-ref ref="FILE" />
+    </logger>
+    
     <!-- iqrf.dpa.v22x.types package -->
     <logger name="com.microrisc.simply.iqrf.dpa.v22x.types.FRC_ResultParser" level="INHERITED">
             <appender-ref ref="FILE" />

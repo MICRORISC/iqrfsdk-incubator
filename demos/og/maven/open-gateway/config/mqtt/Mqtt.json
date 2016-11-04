@@ -2,11 +2,13 @@
     "protocol": "tcp://",
     "broker": "localhost",
     "port": 1883,
-    "clientid": "std",
+    "clientid": "123456654321",
+    "gwid": "b827eb26c73d",
     "cleansession": true,
     "quitemode": false,
     "ssl": false,
     "certfile": "",
+    "username": "",
     "password": "",
-    "username": ""
+    "roottopic": ""
 }

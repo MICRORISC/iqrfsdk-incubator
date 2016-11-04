@@ -1,0 +1,10 @@
+{
+    "pollingPeriod":30,
+    "communicationInterface":"cdc",
+    "devices":
+        [
+            {"device":1, "manufacturer":"protronix", "type":"co2-t-h"},
+            {"device":2, "manufacturer":"protronix", "type":"voc-t-h"},
+            {"device":3, "manufacturer":"iqhome", "type":"custom"}
+        ]
+}

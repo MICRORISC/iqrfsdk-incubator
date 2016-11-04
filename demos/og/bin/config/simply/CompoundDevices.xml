@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : CompoundDevices.xml
+    Created on : 13.07.2016
+    Author     : Michal Konopa
+    Description:
+        Distribution of Compound Devices on nodes.   
+-->
+
+<networks>
+	<network id="1">
+		<node id="1">
+			<device>
+				<implClass>com.microrisc.simply.devices.protronix.dpa22x.impl.CO2SensorUARTImpl</implClass>
+				<internalDevices>
+					<internalDevice>
+						<interface>com.microrisc.simply.iqrf.dpa.v22x.devices.UART</interface>
+					</internalDevice>
+				</internalDevices>
+				<factory>
+					<class>com.microrisc.simply.compounddevices.CompoundDeviceObjectFactoryDefImpl</class>
+				</factory>
+			</device>
+                        <device>
+				<implClass>com.microrisc.simply.devices.protronix.dpa22x.impl.VOCSensorUARTImpl</implClass>
+				<internalDevices>
+					<internalDevice>
+						<interface>com.microrisc.simply.iqrf.dpa.v22x.devices.UART</interface>
+					</internalDevice>
+				</internalDevices>
+				<factory>
+					<class>com.microrisc.simply.compounddevices.CompoundDeviceObjectFactoryDefImpl</class>
+				</factory>
+			</device>
+		</node>
+                
+                
+		<node id="2">
+			<device>
+				<implClass>com.microrisc.simply.devices.protronix.dpa22x.impl.CO2SensorUARTImpl</implClass>
+				<internalDevices>
+					<internalDevice>
+						<interface>com.microrisc.simply.iqrf.dpa.v22x.devices.UART</interface>
+					</internalDevice>
+				</internalDevices>
+				<factory>
+					<class>com.microrisc.simply.compounddevices.CompoundDeviceObjectFactoryDefImpl</class>
+				</factory>
+			</device>
+                        <device>
+				<implClass>com.microrisc.simply.devices.protronix.dpa22x.impl.VOCSensorUARTImpl</implClass>
+				<internalDevices>
+					<internalDevice>
+						<interface>com.microrisc.simply.iqrf.dpa.v22x.devices.UART</interface>
+					</internalDevice>
+				</internalDevices>
+				<factory>
+					<class>com.microrisc.simply.compounddevices.CompoundDeviceObjectFactoryDefImpl</class>
+				</factory>
+			</device>
+		</node>
+	</network>
+</networks>

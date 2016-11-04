@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mosquitto_sub -v -t +/sensors/protronix/+ -q 2
+mosquitto_sub -v -t +/std/sensors/protronix/+ -q 2

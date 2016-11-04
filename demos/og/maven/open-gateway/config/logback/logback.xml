@@ -12,6 +12,17 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
             <file>Simply-${bySecond}.log</file>
             <append>false</append>
+            
+            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                <fileNamePattern>Simply_%i.log.zip</fileNamePattern>
+                <minIndex>1</minIndex>
+                <maxIndex>1</maxIndex>
+            </rollingPolicy>
+            
+            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <maxFileSize>1MB</maxFileSize>
+            </triggeringPolicy>
+
             <encoder>
                 <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{40}: %msg%n</pattern>
             </encoder>
@@ -149,7 +160,7 @@
     </logger>
 
     <!-- iqrf.dpa.connector package -->
-    <logger name="com.microrisc.simply.iqrf.dpa.connector.DPA_Connector" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.connector.DPA_Connector" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
 
@@ -157,7 +168,7 @@
 
     <!-- iqrf.dpa.v22x package -->
     
-    <logger name="com.microrisc.simply.iqrf.dpa.v22x.DPA_DeviceObject" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.DPA_DeviceObject" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
     
@@ -186,7 +197,7 @@
             <appender-ref ref="FILE" />
     </logger>
 
-    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.DPA_ProtocolLayer" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.DPA_ProtocolLayer" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
 
@@ -194,10 +205,15 @@
             <appender-ref ref="FILE" />
     </logger>
     
-    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.ProtocolStateMachine" level="INHERITED">
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.ProtocolStateMachine" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
     
+    
+    <!-- iqrf.dpa.protocol.timing package -->
+    <logger name="com.microrisc.simply.iqrf.dpa.v22x.protocol.timing.TimingParamsStorage" level="DEBUG">
+            <appender-ref ref="FILE" />
+    </logger>
     
     <!-- iqrf.dpa.v22x.types package -->
     <logger name="com.microrisc.simply.iqrf.dpa.v22x.types.FRC_ResultParser" level="INHERITED">
@@ -331,7 +347,7 @@
         
 	
     <!-- com.microrisc.simply.network.usbcdc package --> 
-    <logger name="com.microrisc.simply.network.usbcdc.CDCNetworkLayer" level="INHERITED">
+    <logger name="com.microrisc.simply.network.usbcdc.CDCNetworkLayer" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
 
@@ -353,11 +369,19 @@
     
 	
     <!-- com.microrisc.simply.network.spi package --> 
-    <logger name="com.microrisc.simply.network.spi.SPINetworkLayer" level="INHERITED">
+    <logger name="com.microrisc.simply.network.spi.SPINetworkLayer" level="DEBUG">
             <appender-ref ref="FILE" />
     </logger>
 
-
+    
+    
+    
+    <!-- com.microrisc.opengateway.web package --> 
+    <logger name="com.microrisc.opengateway.web.WebRequestParser" level="DEBUG">
+            <appender-ref ref="FILE" />
+    </logger>
+    
+    
     <!-- root -->
     <root level="OFF">
         <!-- appender-ref ref="STDOUT" / -->

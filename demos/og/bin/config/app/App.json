@@ -1,4 +1,8 @@
 {
-    "numberOfSensors": 3,
-    "pollingPeriod": 30
+    "pollingPeriod":30,
+    "communicationInterface":"cdc",
+    "devices":
+        [
+            {"device":1, "manufacturer":"protronix", "type":"co2-t-h"}
+        ]
 }
